@@ -13,7 +13,6 @@ async def start_handler(update: Update, context) -> None:
 async def handle_bot_request(bot_token: str, get_request_data: Callable[[], Awaitable[JSONDict]]):
     async with Application.builder().token(bot_token).updater(None).build() as application:
         application.add_handler(CommandHandler("start", start_handler))
-        application.start()
         update = Update.de_json(data=await get_request_data(), bot=application.bot)
         await application.process_update(update)
 

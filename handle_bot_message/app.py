@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import sys
 
 from update_handler import handle_bot_request
 
@@ -16,13 +15,11 @@ def get_bot_token(context) -> str:
 
 
 async def handle_async(event, context):
-    try:
-        await handle_bot_request(get_bot_token(context), lambda: json.loads(event['body']))
-    except Exception as e:
-        print(e, file=sys.stderr)
-        return {"statusCode": 500}
+    async def get_request_data():
+        return json.loads(event['body'])
 
-    return {"statusCode": 204}
+    await handle_bot_request(get_bot_token(context), get_request_data)
+    return {"statusCode": 200}
 
 
 def lambda_handler(event, context):
