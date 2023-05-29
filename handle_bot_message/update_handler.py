@@ -1,23 +1,23 @@
-import sys
+from typing import Callable, Awaitable, Dict, Any
 
 from telegram import Update
-from telegram.error import Forbidden, BadRequest
+from telegram.ext import Application, CommandHandler
+
+JSONDict = Dict[str, Any]
 
 
-async def handle_update(update: Update, context=None) -> None:
-    if update is None or update.message is None:
-        return
-
-    if update.message.from_user is None or update.message.from_user.is_bot:
-        return
-
-    try:
-        await handle_core(update)
-    except Forbidden as e:
-        print(f"Unauthorized: {e}", file=sys.stderr)
-    except BadRequest as e:
-        print(f"Bad request: {e}", file=sys.stderr)
-
-
-async def handle_core(update: Update):
+async def start_handler(update: Update, context) -> None:
     await update.message.reply_text('Hello')
+
+
+async def handle_bot_request(bot_token: str, get_request_data: Callable[[], Awaitable[JSONDict]]):
+    async with Application.builder().token(bot_token).updater(None).build() as application:
+        application.add_handler(CommandHandler("start", start_handler))
+        application.start()
+        update = Update.de_json(data=await get_request_data(), bot=application.bot)
+        await application.process_update(update)
+
+
+async def setup_webhook(bot_token: str, url: str):
+    application = Application.builder().token(bot_token).build()
+    await application.bot.set_webhook(url=url)

@@ -3,9 +3,7 @@ import json
 import os
 import sys
 
-from telegram import Update, Bot
-
-from update_handler import handle_update
+from update_handler import handle_bot_request
 
 
 def get_bot_token(context) -> str:
@@ -19,9 +17,7 @@ def get_bot_token(context) -> str:
 
 async def handle_async(event, context):
     try:
-        async with Bot(token=get_bot_token(context)) as bot:
-            update = Update.de_json(json.loads(event['body']), bot)
-            await handle_update(update)
+        await handle_bot_request(get_bot_token(context), lambda: json.loads(event['body']))
     except Exception as e:
         print(e, file=sys.stderr)
         return {"statusCode": 500}
