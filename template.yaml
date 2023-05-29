@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Bot assistant for Telegram.
+
+Globals:
+  Function:
+    Timeout: 30
+
+Resources:
+  RememberStuffHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handle_bot_message/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      Events:
+        HandleBotMessage:
+          Type: Api
+          Properties:
+            Path: /handle_bot_message
+            Method: post
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  RememberStuffApi:
+    Description: "API Gateway endpoint"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/handle_bot_message/"
+  RememberStuffFunction:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt RememberStuffHandler.Arn
+  RememberStuffFunctionIamRole:
+    Description: "Implicit IAM Role for function"
+    Value: !GetAtt PsychologistFindHandlerRole.Arn
