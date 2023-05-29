@@ -35,4 +35,4 @@ Outputs:
     Value: !GetAtt RememberStuffHandler.Arn
   RememberStuffFunctionIamRole:
     Description: "Implicit IAM Role for function"
-    Value: !GetAtt PsychologistFindHandlerRole.Arn
+    Value: !GetAtt RememberStuffFunctionIamRole.Arn
