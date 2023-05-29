@@ -33,6 +33,6 @@ Outputs:
   RememberStuffFunction:
     Description: "Lambda Function ARN"
     Value: !GetAtt RememberStuffHandler.Arn
-  RememberStuffFunctionIamRole:
-    Description: "Implicit IAM Role for function"
-    Value: !GetAtt RememberStuffFunctionIamRole.Arn
+#  RememberStuffFunctionIamRole:
+#    Description: "Implicit IAM Role for function"
+#    Value: !GetAtt RememberStuffFunctionIamRole.Arn
