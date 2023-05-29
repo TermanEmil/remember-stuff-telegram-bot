@@ -1,3 +1,6 @@
+# AWS configuration for an AWS Lambda function triggered by an API Gateway
+# redirecting the request to the message_handler.
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
@@ -33,6 +36,3 @@ Outputs:
   RememberStuffFunction:
     Description: "Lambda Function ARN"
     Value: !GetAtt RememberStuffHandler.Arn
-#  RememberStuffFunctionIamRole:
-#    Description: "Implicit IAM Role for function"
-#    Value: !GetAtt RememberStuffFunctionIamRole.Arn
