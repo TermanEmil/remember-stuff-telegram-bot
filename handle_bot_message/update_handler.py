@@ -1,7 +1,9 @@
 from typing import Callable, Awaitable, Dict, Any
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters
+
+from persistent_context_boto3 import Boto3ConversationPersistence
 
 JSONDict = Dict[str, Any]
 
@@ -10,11 +12,67 @@ async def start_handler(update: Update, context) -> None:
     await update.message.reply_text('Hello')
 
 
+async def describe_sticker_handler(update: Update, context) -> int:
+    await update.message.reply_text('Okay, now send me some stickers!')
+    return SEND_STICKERS
+
+
+async def send_stickers_handler(update: Update, context) -> int:
+    if not update.message.sticker:
+        await update.message.reply_text('Sticker required!')
+        return SEND_STICKERS
+
+    await update.message.reply_text(
+        f"Adding sticker with id {update.message.sticker.file_unique_id}.\n" +
+        f"Now add some description."
+    )
+
+    return SEND_DESCRIPTION
+
+
+async def send_description_handler(update: Update, context) -> int:
+    await update.message.reply_text(
+        f"The sticker saved with the following description: {update.message.text}\n" +
+        "To start again use /describe_sticker"
+    )
+    return ConversationHandler.END
+
+
+async def cancel_handler(update: Update, context) -> int:
+    await update.message.reply_text('Cancelled')
+    return ConversationHandler.END
+
+
+SEND_STICKERS, SEND_DESCRIPTION = range(2)
+
+
+def describe_sticker_conversation() -> ConversationHandler:
+    return ConversationHandler(
+        name='describe_sticker_conversation',
+        entry_points=[CommandHandler("describe_sticker", describe_sticker_handler)],
+        states={
+            SEND_STICKERS: [MessageHandler(filters.ALL, send_stickers_handler)],
+            SEND_DESCRIPTION: [MessageHandler(filters.ALL, send_description_handler)]
+        },
+        fallbacks=[CommandHandler("cancel", cancel_handler)],
+        persistent=True,
+        allow_reentry=True,
+    )
+
+
 async def handle_bot_request(bot_token: str, get_request_data: Callable[[], Awaitable[JSONDict]]):
-    async with Application.builder().token(bot_token).updater(None).build() as application:
-        application.add_handler(CommandHandler("start", start_handler))
-        update = Update.de_json(data=await get_request_data(), bot=application.bot)
+    message_data = await get_request_data()
+    user_id = message_data['message']['from']['id']
+
+    application = Application.builder().token(bot_token).persistence(Boto3ConversationPersistence(user_id=user_id)).build()
+    application.add_handler(CommandHandler("start", start_handler))
+    application.add_handler(describe_sticker_conversation())
+
+    async with application:
+        update = Update.de_json(data=message_data, bot=application.bot)
         await application.process_update(update)
+
+    pass
 
 
 async def setup_webhook(bot_token: str, url: str):

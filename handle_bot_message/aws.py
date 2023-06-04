@@ -12,6 +12,7 @@ dynamodb = boto3.resource(
 
 
 def get_db():
-    migrations.ensure_user_session_table_exists(dynamodb)
+    # migrations.ensure_user_session_table_exists(dynamodb)
+    # migrations.ensure_conversation_table_exists(dynamodb)
     return dynamodb
 
