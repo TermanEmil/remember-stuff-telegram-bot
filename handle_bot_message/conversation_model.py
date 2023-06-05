@@ -44,10 +44,10 @@ def update_or_create_conversation_data(
 
 def get_conversation_data(
         user_id: int,
-        name: str
+        conversation_name: str
 ) -> dict:
     table = get_db().Table(configs.conversation_table_name)
-    item = table.get_item(Key={'id': ConversationData.create_id(name=name, user_id=user_id)})
+    item = table.get_item(Key={'id': ConversationData.create_id(name=conversation_name, user_id=user_id)})
     if item and 'Item' in item:
         key = _array_as_string_to_int_tuple(item['Item']['key'])
 

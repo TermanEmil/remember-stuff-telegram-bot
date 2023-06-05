@@ -1,44 +1,47 @@
 from typing import Callable, Awaitable, Dict, Any
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes
 
 from persistent_context_boto3 import Boto3ConversationPersistence
 
 JSONDict = Dict[str, Any]
 
 
-async def start_handler(update: Update, context) -> None:
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello')
 
 
-async def describe_sticker_handler(update: Update, context) -> int:
+async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Okay, now send me some stickers!')
     return SEND_STICKERS
 
 
-async def send_stickers_handler(update: Update, context) -> int:
+async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if not update.message.sticker:
         await update.message.reply_text('Sticker required!')
         return SEND_STICKERS
 
+    sticker_id = update.message.sticker.file_unique_id
+    context.user_data['conversation_sticker_id'] = sticker_id
     await update.message.reply_text(
-        f"Adding sticker with id {update.message.sticker.file_unique_id}.\n" +
+        f"Adding sticker with id {sticker_id}.\n" +
         f"Now add some description."
     )
 
     return SEND_DESCRIPTION
 
 
-async def send_description_handler(update: Update, context) -> int:
+async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    sticker_id = context.user_data['conversation_sticker_id']
     await update.message.reply_text(
-        f"The sticker saved with the following description: {update.message.text}\n" +
+        f"The sticker with id {sticker_id} saved with the following description: {update.message.text}\n" +
         "To start again use /describe_sticker"
     )
     return ConversationHandler.END
 
 
-async def cancel_handler(update: Update, context) -> int:
+async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Cancelled')
     return ConversationHandler.END
 
