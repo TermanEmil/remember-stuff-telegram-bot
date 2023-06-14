@@ -3,7 +3,7 @@ from typing import Callable, Awaitable, Dict, Any
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes
 
-from persistent_context_boto3 import Boto3ConversationPersistence
+# from persistent_context_boto3 import Boto3ConversationPersistence
 
 JSONDict = Dict[str, Any]
 
@@ -65,11 +65,11 @@ def describe_sticker_conversation() -> ConversationHandler:
 
 async def handle_bot_request(bot_token: str, get_request_data: Callable[[], Awaitable[JSONDict]]):
     message_data = await get_request_data()
-    user_id = message_data['message']['from']['id']
+    # user_id = message_data['message']['from']['id']
 
-    application = Application.builder().token(bot_token).persistence(Boto3ConversationPersistence(user_id=user_id)).build()
+    application = Application.builder().token(bot_token).build()
     application.add_handler(CommandHandler("start", start_handler))
-    application.add_handler(describe_sticker_conversation())
+    # application.add_handler(describe_sticker_conversation())
 
     async with application:
         update = Update.de_json(data=message_data, bot=application.bot)
