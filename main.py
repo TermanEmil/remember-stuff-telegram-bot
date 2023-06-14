@@ -14,11 +14,8 @@ def get_bot_token() -> str:
     return os.environ.get(f"TELEGRAM_BOT_TOKEN")
 
 
-async def handle_async(request):
-    async def get_request_data():
-        return request.get_json(silent=True)
-
-    await handle_bot_request(get_bot_token(), get_request_data)
+async def handle_async(request_json):
+    await handle_bot_request(get_bot_token(), request_json)
     return {"statusCode": 200}
 
 

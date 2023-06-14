@@ -63,8 +63,7 @@ def describe_sticker_conversation() -> ConversationHandler:
     )
 
 
-async def handle_bot_request(bot_token: str, get_request_data: Callable[[], Awaitable[JSONDict]]):
-    message_data = await get_request_data()
+async def handle_bot_request(bot_token: str, message_data: dict):
     # user_id = message_data['message']['from']['id']
 
     application = Application.builder().token(bot_token).build()
