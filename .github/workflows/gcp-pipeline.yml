@@ -17,6 +17,7 @@ jobs:
       name: 'Authentication on Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
+        token_format: 'access_token'
         workload_identity_provider: 'projects/28240645297/locations/global/workloadIdentityPools/bot-assistant-identity-pool/providers/github'
         service_account: 'bot-assistant-deployer-v3@bot-assistant-389822.iam.gserviceaccount.com'
 
