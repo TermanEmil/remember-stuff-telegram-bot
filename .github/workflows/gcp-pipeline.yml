@@ -17,7 +17,6 @@ jobs:
       name: 'Authentication on Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
-        token_format: 'access_token'
         workload_identity_provider: 'projects/1044047179691/locations/global/workloadIdentityPools/pipelines-identity-pool/providers/github'
         service_account: 'bot-assistant-deployer-v2@pipelines-390022.iam.gserviceaccount.com'
 
