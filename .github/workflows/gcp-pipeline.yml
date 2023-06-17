@@ -17,23 +17,12 @@ jobs:
       name: 'Authentication on Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
-        token_format: 'access_token'
         workload_identity_provider: 'projects/28240645297/locations/global/workloadIdentityPools/bot-assistant-identity-pool/providers/github'
         service_account: 'bot-assistant-deployer-v3@bot-assistant-389822.iam.gserviceaccount.com'
 
-#    - id: 'deploy'
-#      uses: 'google-github-actions/deploy-cloud-functions@v1'
-#      with:
-#        name: 'bot-assistant-handler'
-#        runtime: 'python39'
-#        entry_point: 'hello_http'
-
-    - id: "deploy"
-      uses: "google-github-actions/deploy-cloud-functions@v0"
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
-        name: "helloWorld"
-        runtime: "nodejs16"
-
-    # Example of using the output
-    - id: "test"
-      run: 'curl "${{ steps.deploy.outputs.url }}"'
+        name: 'bot-assistant-handler'
+        runtime: 'python39'
+        entry_point: 'hello_http'
