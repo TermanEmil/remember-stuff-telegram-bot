@@ -16,9 +16,8 @@ jobs:
     - id: 'auth'
       uses: 'google-github-actions/auth@v1'
       with:
-        create_credentials_file: true
         workload_identity_provider: 'projects/1044047179691/locations/global/workloadIdentityPools/pipelines-identity-pool/providers/github'
-        service_account: 'bot-assistant-deployer@pipelines-390022.iam.gserviceaccount.com'
+        service_account: 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/bot-assistant-deployer@pipelines-390022.iam.gserviceaccount.com:generateAccessToken'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
