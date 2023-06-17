@@ -4,7 +4,7 @@ on:
       - master
 
 jobs:
-  job_id:
+  deploy-gcp-function:
     runs-on: 'ubuntu-latest'
     permissions:
       contents: 'read'
@@ -17,8 +17,8 @@ jobs:
       name: 'Authentication on Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
-        workload_identity_provider: 'projects/1044047179691/locations/global/workloadIdentityPools/pipelines-identity-pool/providers/github'
-        service_account: 'bot-assistant-deployer-v2@pipelines-390022.iam.gserviceaccount.com'
+        workload_identity_provider: 'projects/28240645297/locations/global/workloadIdentityPools/bot-assistant-identity-pool/providers/github'
+        service_account: 'bot-assistant-deployer-v3@bot-assistant-389822.iam.gserviceaccount.com'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
