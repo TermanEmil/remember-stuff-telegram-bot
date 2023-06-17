@@ -14,10 +14,12 @@ jobs:
     - uses: 'actions/checkout@v3'
 
     - id: 'auth'
+      name: 'Authentication on Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
+        token_format: 'access_token'
         workload_identity_provider: 'projects/1044047179691/locations/global/workloadIdentityPools/pipelines-identity-pool/providers/github'
-        service_account: 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/bot-assistant-deployer@pipelines-390022.iam.gserviceaccount.com:generateAccessToken'
+        service_account: 'bot-assistant-deployer-v2@pipelines-390022.iam.gserviceaccount.com'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
