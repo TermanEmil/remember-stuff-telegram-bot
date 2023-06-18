@@ -26,3 +26,8 @@ jobs:
         name: 'bot-assistant-handler'
         runtime: 'python39'
         entry_point: 'bot_assistant_handler'
+        region: 'europe-central2'
+        project_id: 'bot-assistant-389822'
+        timeout: '30'
+        max_instances: '2'
+        https_trigger_security_level: 'secure_always'
