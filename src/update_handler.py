@@ -1,11 +1,7 @@
-from typing import Callable, Awaitable, Dict, Any
+from typing import Dict, Any
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes
-
-from persistent_context_pymongo import PymongoConversationPersistence
-
-# from persistent_context_boto3 import Boto3ConversationPersistence
 
 JSONDict = Dict[str, Any]
 
@@ -68,6 +64,7 @@ def describe_sticker_conversation() -> ConversationHandler:
 async def handle_bot_request(bot_token: str, message_data: dict):
     user_id = message_data['message']['from']['id']
 
+    from src.persistent_context_pymongo import PymongoConversationPersistence
     application = Application.builder()\
         .token(bot_token)\
         .persistence(PymongoConversationPersistence(user_id=user_id))\

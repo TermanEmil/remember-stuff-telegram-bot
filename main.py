@@ -2,7 +2,7 @@ import asyncio
 import os
 import functions_framework
 
-from update_handler import handle_bot_request
+from src.update_handler import handle_bot_request
 
 
 async def handle_async(request_json):

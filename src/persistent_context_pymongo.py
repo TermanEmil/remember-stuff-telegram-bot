@@ -1,11 +1,9 @@
-import os
-from dataclasses import asdict
 from typing import Dict, Optional
 
-from telegram.ext import BasePersistence, PersistenceInput, PicklePersistence
+from telegram.ext import BasePersistence, PersistenceInput
 from telegram.ext._utils.types import CD, BD, CDCData, ConversationDict, ConversationKey, UD
-from conversation_model import update_or_create_conversation_data, get_conversation_data
-from user_data_model import update_or_create_user_data, get_user_data
+from src.models.conversation_model import update_or_create_conversation_data, get_conversation_data
+from src.models.user_data_model import update_or_create_user_data, get_user_data
 
 
 class PymongoConversationPersistence(BasePersistence[UD, CD, BD]):
@@ -34,8 +32,12 @@ class PymongoConversationPersistence(BasePersistence[UD, CD, BD]):
         return get_conversation_data(self.user_id, conversation_name)
 
     async def update_conversation(self, name: str, key: ConversationKey, new_state: Optional[object]) -> None:
-        update_or_create_conversation_data(user_id=self.user_id, conversation_key=key, conversation_name=name, conversation_state=new_state)
-        pass
+        update_or_create_conversation_data(
+            user_id=self.user_id,
+            conversation_key=key,
+            conversation_name=name,
+            conversation_state=new_state
+        )
 
     async def update_chat_data(self, chat_id: int, data: CD) -> None:
         pass

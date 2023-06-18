@@ -1,12 +1,10 @@
 import json
-from dataclasses import dataclass, asdict
 from typing import Optional, Tuple, TypedDict
 
-from pymongo.collection import Collection
 from telegram.ext._utils.types import ConversationKey
 
-import configs
-from db import get_db
+from src.models import names
+from src.models.db import get_db
 
 
 class ConversationData(TypedDict):
@@ -14,10 +12,6 @@ class ConversationData(TypedDict):
     conversation_name: str
     conversation_key: str
     conversation_state: str
-
-
-def _get_collection() -> Collection[ConversationData]:
-    return get_db()[configs.db_name][configs.conversations_collection_name]
 
 
 def update_or_create_conversation_data(
@@ -38,18 +32,23 @@ def update_or_create_conversation_data(
         conversation_state=actual_state
     )
 
-    _get_collection().update_one(
-        filter={'user_id': user_id, 'conversation_name': conversation_name},
-        update={"$set": data},
-        upsert=True
-    )
+    with get_db() as db:
+        db[names.db][names.conversations].update_one(
+            filter={'user_id': user_id, 'conversation_name': conversation_name},
+            update={"$set": data},
+            upsert=True
+        )
 
 
 def get_conversation_data(
         user_id: int,
         conversation_name: str
 ) -> dict:
-    conversation = _get_collection().find_one({'user_id': user_id, 'conversation_name': conversation_name})
+    with get_db() as db:
+        conversation = db[names.db][names.conversations].find_one(
+            {'user_id': user_id, 'conversation_name': conversation_name}
+        )
+
     if conversation is None:
         return {}
 
@@ -62,5 +61,9 @@ def get_conversation_data(
 
 
 def _array_as_string_to_int_tuple(value: str) -> Tuple[int]:
+    """
+    Example:
+        "[4, 2]" -> (4, 2)
+    """
     array_of_strings = value.replace('[', '').replace(']', '').split(', ')
     return tuple(int(num) for num in array_of_strings)
