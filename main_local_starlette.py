@@ -24,7 +24,8 @@ async def main() -> None:
     await setup_webhook(bot_token=bot_token, url=f"{url}/telegram")
 
     async def telegram_endpoint(request: Request) -> Response:
-        await handle_bot_request(bot_token, lambda: request.json())
+        message = await request.json()
+        await handle_bot_request(bot_token, message)
         return Response()
 
     webserver = uvicorn.Server(

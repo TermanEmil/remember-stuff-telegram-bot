@@ -25,4 +25,4 @@ jobs:
       with:
         name: 'bot-assistant-handler'
         runtime: 'python39'
-        entry_point: 'hello_http'
+        entry_point: 'bot_assistant_handler'
