@@ -123,6 +123,8 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     if user_id is None:
         return
 
+    logging.info(f'Handling bot request for user {user_id}')
+
     application = Application.builder()\
         .token(bot_token)\
         .persistence(PymongoConversationPersistence(user_id=user_id))\
