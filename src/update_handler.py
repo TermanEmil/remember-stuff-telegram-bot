@@ -138,7 +138,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
         update = Update.de_json(data=message_data, bot=application.bot)
         await application.process_update(update)
 
-    pass
+    logging.info(f'Finished handling bot request for user {user_id}')
 
 
 async def setup_webhook(bot_token: str, url: str):
