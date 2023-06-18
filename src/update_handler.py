@@ -1,16 +1,21 @@
-from html import escape
+import logging
 from typing import Dict, Any, Optional
 from uuid import uuid4
 
-from telegram import Update, InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultCachedSticker
-from telegram.constants import ParseMode
+from telegram import Update, InlineQueryResultCachedSticker
 from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes, \
     InlineQueryHandler
 
-from src.persistent_context_pymongo import PymongoConversationPersistence
 from src.models.user_content import save_user_content, UserContent, search_user_content
+from src.persistent_context_pymongo import PymongoConversationPersistence
 
 JSONDict = Dict[str, Any]
+
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -88,7 +93,9 @@ async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not query:  # empty query should not be handled
         return
 
+    logging.info(f'Received inline query: {query}')
     items = search_user_content(query)
+    logging.info(f'Found {len(items)} results')
 
     def map_to_query_result(item: UserContent):
         return InlineQueryResultCachedSticker(
