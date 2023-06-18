@@ -3,6 +3,8 @@ from typing import Dict, Any
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes
 
+from src.models.user_content import save_user_content, UserContent
+
 JSONDict = Dict[str, Any]
 
 
@@ -20,7 +22,7 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text('Sticker required!')
         return SEND_STICKERS
 
-    sticker_id = update.message.sticker.file_unique_id
+    sticker_id = update.message.sticker.file_id
     context.user_data['conversation_sticker_id'] = sticker_id
     await update.message.reply_text(
         f"Adding sticker with id {sticker_id}.\n" +
@@ -31,10 +33,24 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = update.message.from_user.id
     sticker_id = context.user_data['conversation_sticker_id']
+    description = update.message.text
+
+    user_content = UserContent(
+        user_id=user_id,
+        content_id=sticker_id,
+        description=description,
+        groups=[f'user-{user_id}']
+    )
+    save_user_content(user_content)
+
     await update.message.reply_text(
-        f"The sticker with id {sticker_id} saved with the following description: {update.message.text}\n" +
+        f"The sticker with id {sticker_id} saved with the following description: {description}\n" +
         "To start again use /describe_sticker"
+    )
+    await update.message.reply_sticker(
+        sticker=sticker_id
     )
     return ConversationHandler.END
 

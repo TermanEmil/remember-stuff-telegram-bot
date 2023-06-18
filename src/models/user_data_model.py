@@ -14,7 +14,7 @@ def update_or_create_user_data(user_id: int, data: dict) -> None:
         user_data = UserData(user_id=user_id, conversation_sticker_id=data['conversation_sticker_id'])
 
         with get_db() as db:
-            db[names.db][names.user_data_collection_name].update_one(
+            db[names.db][names.user_data].update_one(
                 {'matchable_field': 'user_id'},
                 {"$set": user_data}, upsert=True
             )
@@ -22,7 +22,7 @@ def update_or_create_user_data(user_id: int, data: dict) -> None:
 
 def get_user_data(user_id: int) -> dict:
     with get_db() as db:
-        item = db[names.db][names.user_data_collection_name].find_one({'user_id': user_id})
+        item = db[names.db][names.user_data].find_one({'user_id': user_id})
 
     if item is None:
         return {}
