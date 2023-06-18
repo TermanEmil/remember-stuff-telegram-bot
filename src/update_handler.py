@@ -1,9 +1,14 @@
-from typing import Dict, Any
+from html import escape
+from typing import Dict, Any, Optional
+from uuid import uuid4
 
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultCachedSticker
+from telegram.constants import ParseMode
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes, \
+    InlineQueryHandler
 
-from src.models.user_content import save_user_content, UserContent
+from src.persistent_context_pymongo import PymongoConversationPersistence
+from src.models.user_content import save_user_content, UserContent, search_user_content
 
 JSONDict = Dict[str, Any]
 
@@ -77,10 +82,40 @@ def describe_sticker_conversation() -> ConversationHandler:
     )
 
 
-async def handle_bot_request(bot_token: str, message_data: dict):
-    user_id = message_data['message']['from']['id']
+async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.inline_query.query
 
-    from src.persistent_context_pymongo import PymongoConversationPersistence
+    if not query:  # empty query should not be handled
+        return
+
+    items = search_user_content(query)
+
+    def map_to_query_result(item: UserContent):
+        return InlineQueryResultCachedSticker(
+            id=str(uuid4()),
+            sticker_file_id=item['content_id']
+        )
+
+    results = [map_to_query_result(item) for item in items]
+    await update.inline_query.answer(results)
+
+
+def _extract_user_id(message_data: dict) -> Optional[int]:
+    if 'message' in message_data:
+        key = 'message'
+    elif 'inline_query' in message_data:
+        key = 'inline_query'
+    else:
+        return None
+
+    return message_data[key]['from']['id']
+
+
+async def handle_bot_request(bot_token: str, message_data: dict):
+    user_id = _extract_user_id(message_data)
+    if user_id is None:
+        return
+
     application = Application.builder()\
         .token(bot_token)\
         .persistence(PymongoConversationPersistence(user_id=user_id))\
@@ -88,6 +123,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
 
     application.add_handler(CommandHandler("start", start_handler))
     application.add_handler(describe_sticker_conversation())
+    application.add_handler(InlineQueryHandler(inline_query))
 
     async with application:
         update = Update.de_json(data=message_data, bot=application.bot)
