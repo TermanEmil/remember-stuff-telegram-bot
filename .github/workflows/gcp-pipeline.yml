@@ -31,4 +31,4 @@ jobs:
         timeout: '30'
         max_instances: '2'
         https_trigger_security_level: 'secure_always'
-        secret_environment_variables: 'TELEGRAM_BOT_TOKEN=projects/28240645297/secrets/TELEGRAM_BOT_TOKEN:MONGO_DB_URI=projects/28240645297/secrets/MONGO_DB_URI'
+        secret_environment_variables: 'TELEGRAM_BOT_TOKEN=projects/28240645297/secrets/TELEGRAM_BOT_TOKEN/versions/latest'
