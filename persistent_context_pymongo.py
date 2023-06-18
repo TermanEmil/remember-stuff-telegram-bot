@@ -1,3 +1,4 @@
+import os
 from dataclasses import asdict
 from typing import Dict, Optional
 
@@ -7,7 +8,7 @@ from conversation_model import update_or_create_conversation_data, get_conversat
 from user_data_model import update_or_create_user_data, get_user_data
 
 
-class Boto3ConversationPersistence(BasePersistence[UD, CD, BD]):
+class PymongoConversationPersistence(BasePersistence[UD, CD, BD]):
     def __init__(
             self,
             user_id: int,
@@ -33,7 +34,7 @@ class Boto3ConversationPersistence(BasePersistence[UD, CD, BD]):
         return get_conversation_data(self.user_id, conversation_name)
 
     async def update_conversation(self, name: str, key: ConversationKey, new_state: Optional[object]) -> None:
-        update_or_create_conversation_data(user_id=self.user_id, key=key, name=name, state=new_state)
+        update_or_create_conversation_data(user_id=self.user_id, conversation_key=key, conversation_name=name, conversation_state=new_state)
         pass
 
     async def update_chat_data(self, chat_id: int, data: CD) -> None:

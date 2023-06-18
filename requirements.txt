@@ -1,3 +1,6 @@
 pytz==2023.3
 python-telegram-bot~=20.3
 functions-framework==3.*
+uvicorn~=0.22.0
+starlette~=0.28.0
+pymongo~=4.3.3

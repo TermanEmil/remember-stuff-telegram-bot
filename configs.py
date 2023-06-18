@@ -1,3 +1,3 @@
-_bot_name = 'assistant_bot'
-conversation_table_name = f'{_bot_name}_conversation'
-user_data_table_name = f'{_bot_name}_user_data'
+db_name = 'bot-assistant-db'
+conversations_collection_name = 'conversations'
+user_data_collection_name = 'user_data'

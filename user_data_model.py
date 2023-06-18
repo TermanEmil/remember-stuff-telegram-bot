@@ -1,28 +1,30 @@
 from dataclasses import dataclass, asdict
+from typing import TypedDict
+
+from pymongo.collection import Collection
 
 import configs
-from aws import get_db
+from db import get_db
 
 
-@dataclass
-class UserData:
+class UserData(TypedDict):
     user_id: int
     conversation_sticker_id: str
 
 
-def _get_table():
-    return get_db().Table(configs.user_data_table_name)
+def _get_collection() -> Collection[UserData]:
+    return get_db()[configs.db_name][configs.user_data_collection_name]
 
 
 def update_or_create_user_data(user_id: int, data: dict) -> None:
     if 'conversation_sticker_id' in data:
         user_data = UserData(user_id=user_id, conversation_sticker_id=data['conversation_sticker_id'])
-        _get_table().put_item(Item=asdict(user_data))
+        _get_collection().update_one({'matchable_field': 'user_id'}, {"$set": user_data}, upsert=True)
 
 
 def get_user_data(user_id: int) -> dict:
-    item = _get_table().get_item(Key={'user_id': user_id})
-    if item and 'Item' in item:
-        return item['Item']
-    else:
+    item = _get_collection().find_one({'user_id': user_id})
+    if item is None:
         return {}
+    else:
+        return item
