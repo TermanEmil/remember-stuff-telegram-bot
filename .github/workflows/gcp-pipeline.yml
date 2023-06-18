@@ -20,6 +20,13 @@ jobs:
         workload_identity_provider: 'projects/28240645297/locations/global/workloadIdentityPools/bot-assistant-identity-pool/providers/github'
         service_account: 'bot-assistant-deployer-v3@bot-assistant-389822.iam.gserviceaccount.com'
 
+    - id: 'secrets'
+      uses: 'google-github-actions/get-secretmanager-secrets@v1'
+      with:
+        secrets: |-
+          TELEGRAM_BOT_TOKEN:projects/28240645297/secrets/TELEGRAM_BOT_TOKEN/versions/1
+          MONGO_DB_URI:projects/28240645297/secrets/MONGO_DB_URI/versions/1
+
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
@@ -31,4 +38,4 @@ jobs:
         timeout: '30'
         max_instances: '2'
         https_trigger_security_level: 'secure_always'
-        secret_environment_variables: 'TELEGRAM_BOT_TOKEN=projects/28240645297/secrets/TELEGRAM_BOT_TOKEN/versions/latest'
+        env_vars: 'TELEGRAM_BOT_TOKEN=${{steps.secrets.outputs.TELEGRAM_BOT_TOKEN}},MONGO_DB_URI=${{ steps.secrets.outputs.MONGO_DB_URI }}'
