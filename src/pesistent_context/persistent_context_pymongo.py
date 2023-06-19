@@ -2,11 +2,15 @@ from typing import Dict, Optional
 
 from telegram.ext import BasePersistence, PersistenceInput
 from telegram.ext._utils.types import CD, BD, CDCData, ConversationDict, ConversationKey, UD
-from src.models.conversation_model import update_or_create_conversation_data, get_conversation_data
-from src.models.user_data_model import update_or_create_user_data, get_user_data
+from src.pesistent_context.conversation_model import update_or_create_conversation_data, get_conversation_data
+from src.pesistent_context.user_data_model import update_or_create_user_data, get_user_data
 
 
 class PymongoConversationPersistence(BasePersistence[UD, CD, BD]):
+    """
+    Persist the Conversation's data between messages through a database.
+    """
+
     def __init__(
             self,
             user_id: int,

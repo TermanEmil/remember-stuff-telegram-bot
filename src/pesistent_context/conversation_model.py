@@ -3,8 +3,7 @@ from typing import Optional, Tuple, TypedDict
 
 from telegram.ext._utils.types import ConversationKey
 
-from src.models import names
-from src.models.db import get_db
+import src.auxiliary.db as db
 
 
 class ConversationData(TypedDict):
@@ -32,8 +31,8 @@ def update_or_create_conversation_data(
         conversation_state=actual_state
     )
 
-    with get_db() as db:
-        db[names.db][names.conversations].update_one(
+    with db.get_db_client() as client:
+        client[db.DB_NAME][db.CONVERSATIONS_NAME].update_one(
             filter={'user_id': user_id, 'conversation_name': conversation_name},
             update={"$set": data},
             upsert=True
@@ -44,8 +43,8 @@ def get_conversation_data(
         user_id: int,
         conversation_name: str
 ) -> dict:
-    with get_db() as db:
-        conversation = db[names.db][names.conversations].find_one(
+    with db.get_db_client() as client:
+        conversation = client[db.DB_NAME][db.CONVERSATIONS_NAME].find_one(
             {'user_id': user_id, 'conversation_name': conversation_name}
         )
 
