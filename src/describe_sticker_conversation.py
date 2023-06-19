@@ -38,11 +38,13 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
     save_user_content(user_content)
 
     await update.message.reply_text(
-        f"The sticker with id {sticker_id} saved with the following description: {description}\n" +
-        "To start again use /describe_sticker"
+        f"The sticker was saved with the following description: {description}\n" +
+        "To start again use /describe_sticker",
+        disable_notification=True
     )
     await update.message.reply_sticker(
-        sticker=sticker_id
+        sticker=sticker_id,
+        disable_notification=True
     )
     return ConversationHandler.END
 
