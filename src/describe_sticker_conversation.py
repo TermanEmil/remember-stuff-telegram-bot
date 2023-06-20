@@ -1,7 +1,7 @@
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from src.user_content import UserContent, save_user_content
+from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions
 
 
 async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -16,10 +16,7 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
     sticker_id = update.message.sticker.file_id
     context.user_data['conversation_sticker_id'] = sticker_id
-    await update.message.reply_text(
-        f"Adding sticker with id {sticker_id}.\n" +
-        f"Now add some description."
-    )
+    await update.message.reply_text(f"Now add some description")
 
     return SEND_DESCRIPTION
 
@@ -42,9 +39,15 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
         "To start again use /describe_sticker",
         disable_notification=True
     )
+
+    descriptions = get_all_sticker_descriptions(sticker_id)
+    buttons = map(lambda x: InlineKeyboardButton(text=x, callback_data=f'{user_id}_{x}'), descriptions)
+    keyboard = InlineKeyboardMarkup([list(buttons)])
+
     await update.message.reply_sticker(
         sticker=sticker_id,
-        disable_notification=True
+        disable_notification=True,
+        reply_markup=keyboard
     )
     return ConversationHandler.END
 
