@@ -1,7 +1,8 @@
 from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
 
-from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions
+from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions, split_descriptions, \
+    STICKER_CONTENT
 
 
 async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -14,38 +15,49 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text('Sticker required!')
         return SEND_STICKERS
 
-    sticker_id = update.message.sticker.file_id
-    context.user_data['conversation_sticker_id'] = sticker_id
+    sticker_id = update.message.sticker.file_unique_id
+    sticker_file_id = update.message.sticker.file_id
+    context.user_data['sticker_id'] = sticker_id
+    context.user_data['sticker_file_id'] = sticker_file_id
     await update.message.reply_text(f"Now add some description")
 
     return SEND_DESCRIPTION
 
 
 async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    sticker_id = context.user_data.get('sticker_id', None)
+    sticker_file_id = context.user_data.get('sticker_file_id', None)
+
+    if sticker_id is None or sticker_file_id is None:
+        await update.message.reply_text("Failed to retrieve state", disable_notification=True)
+        return ConversationHandler.END
+
     user_id = update.message.from_user.id
-    sticker_id = context.user_data['conversation_sticker_id']
-    description = update.message.text
+    descriptions = split_descriptions(update.message.text)
+    groups = [f'user-{user_id}']
 
     user_content = UserContent(
         user_id=user_id,
         content_id=sticker_id,
-        description=description,
-        groups=[f'user-{user_id}']
+        content_file_id=sticker_file_id,
+        descriptions=descriptions,
+        groups=groups,
+        type=STICKER_CONTENT
     )
     save_user_content(user_content)
 
     await update.message.reply_text(
-        f"The sticker was saved with the following description: {description}\n" +
+        f"The sticker was saved with the following description: {descriptions}\n" +
         "To start again use /describe_sticker",
         disable_notification=True
     )
 
-    descriptions = get_all_sticker_descriptions(sticker_id)
-    buttons = map(lambda x: InlineKeyboardButton(text=x, callback_data=f'{user_id}_{x}'), descriptions)
+    all_descriptions = get_all_sticker_descriptions(sticker_id)
+    buttons = map(lambda x: InlineKeyboardButton(text=x, callback_data=f'{user_id}_{x}'), all_descriptions)
     keyboard = InlineKeyboardMarkup([list(buttons)])
 
     await update.message.reply_sticker(
-        sticker=sticker_id,
+        sticker=sticker_file_id,
         disable_notification=True,
         reply_markup=keyboard
     )
