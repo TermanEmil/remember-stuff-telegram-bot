@@ -1,6 +1,6 @@
 import itertools
 import re
-from typing import TypedDict, List
+from typing import TypedDict, List, Dict
 
 import src.auxiliary.db as db
 
@@ -32,11 +32,15 @@ def save_user_content(content: UserContent):
 
 def search_user_content(query: str) -> List[UserContent]:
     with db.get_db_client() as client:
-        items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({'descriptions': {
-            '$regex': f'.*{query}.*'},
-            '$options': 'i'
+        items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'descriptions': {
+                '$regex': f'^.*{query}.*$',
+                '$options': 'i'
+            }
         })
-        return [UserContent(**item) for item in items]
+        user_content = [UserContent(**item) for item in items]
+        user_content_dict = dict(map(lambda x: (x['content_id'], x), user_content))
+        return list(user_content_dict.values())
 
 
 def get_all_sticker_descriptions(sticker_id: str) -> List[str]:

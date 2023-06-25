@@ -21,7 +21,7 @@ async def search_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     def map_to_query_result(item: UserContent):
         return InlineQueryResultCachedSticker(
             id=str(uuid4()),
-            sticker_file_id=item['content_id']
+            sticker_file_id=item['content_file_id']
         )
 
     results = [map_to_query_result(item) for item in items]
