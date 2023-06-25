@@ -1,6 +1,8 @@
 import itertools
 import re
-from typing import TypedDict, List, Dict
+from typing import TypedDict, List, Optional
+
+from pymongo.results import UpdateResult
 
 import src.auxiliary.db as db
 
@@ -30,6 +32,28 @@ def save_user_content(content: UserContent):
         client[db.DB_NAME][db.USER_CONTENT_NAME].insert_one(content)
 
 
+def delete_content_description(user_id: int, content_id: int, description: str) -> Optional[UserContent]:
+    with db.get_db_client() as client:
+        deleted_element = client[db.DB_NAME][db.USER_CONTENT_NAME].find_one_and_update(
+            {
+                'user_id': user_id,
+                'content_id': content_id,
+                'descriptions': {
+                    '$regex': f'^{description}$',
+                    '$options': 'i'
+                }
+            },
+            {
+                '$pull': {
+                    'descriptions': {
+                        '$regex': f'^{description}$',
+                        '$options': 'i'
+                    }
+                }
+            })
+        return deleted_element
+
+
 def search_user_content(query: str) -> List[UserContent]:
     with db.get_db_client() as client:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
@@ -47,4 +71,4 @@ def get_all_sticker_descriptions(sticker_id: str) -> List[str]:
     with db.get_db_client() as client:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({'content_id': sticker_id})
         descriptions = map(lambda item: item['descriptions'], items)
-        return list(itertools.chain.from_iterable(descriptions))
+        return list(sorted(itertools.chain.from_iterable(descriptions)))

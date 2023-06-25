@@ -1,8 +1,11 @@
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
+from typing import Iterable
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, Application, \
+    CallbackQueryHandler
 
 from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions, split_descriptions, \
-    STICKER_CONTENT
+    STICKER_CONTENT, delete_content_description
 
 
 async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -22,6 +25,24 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
     await update.message.reply_text(f"Now add some description")
 
     return SEND_DESCRIPTION
+
+
+async def _send_sticker_with_descriptions(update: Update, sticker_id: str, sticker_file_id: str) -> None:
+    if update.callback_query:
+        message = update.callback_query.message
+    else:
+        message = update.message
+
+    all_descriptions = get_all_sticker_descriptions(sticker_id)
+    buttons = map(lambda x: [InlineKeyboardButton(text=x, callback_data=f'{sticker_id}]|[{x}')], all_descriptions)
+
+    keyboard = InlineKeyboardMarkup(list(buttons))
+
+    await message.reply_sticker(
+        sticker=sticker_file_id,
+        disable_notification=True,
+        reply_markup=keyboard
+    )
 
 
 async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -52,16 +73,31 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
         disable_notification=True
     )
 
-    all_descriptions = get_all_sticker_descriptions(sticker_id)
-    buttons = map(lambda x: [InlineKeyboardButton(text=x, callback_data=f'{sticker_id}_{x}')], all_descriptions)
-    keyboard = InlineKeyboardMarkup(list(buttons))
-
-    await update.message.reply_sticker(
-        sticker=sticker_file_id,
-        disable_notification=True,
-        reply_markup=keyboard
-    )
+    await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
     return ConversationHandler.END
+
+
+async def keyboard_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+
+    await query.answer()
+
+    if len(query.data) == 0:
+        return
+
+    sticker_id, description = query.data.split(']|[')
+    deleted_element = delete_content_description(
+        user_id=update.callback_query.from_user.id,
+        content_id=sticker_id,
+        description=description
+    )
+
+    if deleted_element:
+        await _send_sticker_with_descriptions(update, sticker_id, deleted_element['content_file_id'])
+    else:
+        await update.callback_query.message.reply_text(
+            f'Could not find the sticker with the following description: {description}'
+        )
 
 
 async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -72,8 +108,8 @@ async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 SEND_STICKERS, SEND_DESCRIPTION = range(2)
 
 
-def describe_sticker_conversation() -> ConversationHandler:
-    return ConversationHandler(
+def describe_sticker_conversation_handlers() -> Iterable[ConversationHandler]:
+    yield ConversationHandler(
         name='describe_sticker_conversation',
         entry_points=[CommandHandler("describe_sticker", describe_sticker_handler)],
         states={
@@ -84,3 +120,5 @@ def describe_sticker_conversation() -> ConversationHandler:
         persistent=True,
         allow_reentry=True,
     )
+
+    yield CallbackQueryHandler(keyboard_button_handler)
