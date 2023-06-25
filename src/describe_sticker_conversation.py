@@ -53,8 +53,8 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
     )
 
     all_descriptions = get_all_sticker_descriptions(sticker_id)
-    buttons = map(lambda x: InlineKeyboardButton(text=x, callback_data=f'{user_id}_{x}'), all_descriptions)
-    keyboard = InlineKeyboardMarkup([list(buttons)])
+    buttons = map(lambda x: [InlineKeyboardButton(text=x, callback_data=f'{sticker_id}_{x}')], all_descriptions)
+    keyboard = InlineKeyboardMarkup(list(buttons))
 
     await update.message.reply_sticker(
         sticker=sticker_file_id,
