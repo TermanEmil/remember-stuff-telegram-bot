@@ -54,9 +54,12 @@ def delete_content_description(user_id: int, content_id: int, description: str) 
         return deleted_element
 
 
-def search_user_content(query: str) -> List[UserContent]:
+def search_user_content(groups: List[str], query: str) -> List[UserContent]:
     with db.get_db_client() as client:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'groups': {
+              '$in': groups
+            },
             'descriptions': {
                 '$regex': f'^.*{query}.*$',
                 '$options': 'i'

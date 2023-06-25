@@ -34,7 +34,9 @@ async def _send_sticker_with_descriptions(update: Update, sticker_id: str, stick
         message = update.message
 
     all_descriptions = get_all_sticker_descriptions(sticker_id)
-    buttons = map(lambda x: [InlineKeyboardButton(text=x, callback_data=f'{sticker_id}]|[{x}')], all_descriptions)
+    buttons = map(lambda description: [
+        InlineKeyboardButton(text=f'{description}', callback_data=f'{sticker_id}]|[{description}')
+    ], all_descriptions)
 
     keyboard = InlineKeyboardMarkup(list(buttons))
 
@@ -55,7 +57,7 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
 
     user_id = update.message.from_user.id
     descriptions = split_descriptions(update.message.text)
-    groups = [f'user-{user_id}']
+    groups = [f'user-{user_id}', 'public']
 
     user_content = UserContent(
         user_id=user_id,

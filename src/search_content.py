@@ -15,7 +15,8 @@ async def search_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
 
     logger.info(f'Received inline query: {query}')
-    items = search_user_content(query)
+    subscribed_groups = context.user_data.get('subscribed_groups')
+    items = search_user_content(subscribed_groups, query)
     logger.info(f'Found {len(items)} results')
 
     def map_to_query_result(item: UserContent):

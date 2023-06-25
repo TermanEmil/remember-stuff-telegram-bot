@@ -10,6 +10,9 @@ class UserData(TypedDict):
 
 def update_or_create_user_data(user_id: int, data: dict) -> None:
     if len(data) > 0:
+        if 'subscribed_groups' not in data:
+            data['subscribed_groups'] = [f'user-{user_id}', 'public']
+
         user_data = UserData(user_id=user_id, data=data)
 
         with db.get_db_client() as client:
