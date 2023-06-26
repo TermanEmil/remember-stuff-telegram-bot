@@ -1,19 +1,15 @@
 from typing import Dict, Any, Optional
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, \
-    InlineQueryHandler
+from telegram.ext import Application, CommandHandler, InlineQueryHandler
 
-from src.describe_sticker_conversation import describe_sticker_conversation_handlers
+from src.describe_sticker_handler import describe_sticker_conversation_handlers
 from src.auxiliary.logger import logger
 from src.pesistent_context.persistent_context_pymongo import PymongoConversationPersistence
 from src.search_content import search_content
+from src.start_handler import start_handler
 
 JSONDict = Dict[str, Any]
-
-
-async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text('Hello')
 
 
 def _extract_user_id(message_data: dict) -> Optional[int]:
@@ -42,6 +38,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
         .build()
 
     application.add_handler(CommandHandler("start", start_handler))
+    application.add_handler(CommandHandler("help", start_handler))
     application.add_handler(InlineQueryHandler(search_content))
     application.add_handlers(list(describe_sticker_conversation_handlers()))
 
