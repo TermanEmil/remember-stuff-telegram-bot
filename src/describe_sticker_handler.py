@@ -127,6 +127,12 @@ async def keyboard_button_handler(update: Update, context: ContextTypes.DEFAULT_
     )
 
     if deleted_element:
+        message = update.message if update.message else update.callback_query.message
+        await message.reply_text(
+            f'Description <i>{description}</i> removed.',
+            parse_mode='html',
+            disable_notification=True
+        )
         await _send_sticker_with_descriptions(update, sticker_id, deleted_element['content_file_id'])
     else:
         await update.callback_query.message.reply_text(
