@@ -30,7 +30,7 @@ async def _send_sticker_with_descriptions(update: Update, sticker_id: str, stick
         return
 
     buttons = map(lambda description: [
-        InlineKeyboardButton(text=f'{description}', callback_data=f'{sticker_id}]|[{description}')
+        InlineKeyboardButton(text=f'❌ {description}', callback_data=f'{sticker_id}]|[{description}')
     ], all_descriptions)
 
     keyboard = InlineKeyboardMarkup(list(buttons))
