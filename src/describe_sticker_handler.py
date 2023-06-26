@@ -72,8 +72,10 @@ async def _send_description_handler_with_params(
     save_user_content(user_content)
 
     readable_descriptions = ', '.join(descriptions)
+    s = len(descriptions) > 1
     await update.message.reply_text(
-        f"The sticker was saved with the following description: <i>{readable_descriptions}</i>.\n" +
+        f"The sticker was saved with the following description{s}:\n"
+        f"<i>{readable_descriptions}</i>\n" +
         "To start again use /describe_sticker",
         disable_notification=True,
         parse_mode='html'
@@ -85,12 +87,21 @@ async def _send_description_handler_with_params(
 async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     sticker_id = context.user_data.get('sticker_id', None)
     sticker_file_id = context.user_data.get('sticker_file_id', None)
+    description = update.message.text
 
     if sticker_id is None or sticker_file_id is None:
-        await update.message.reply_text("Failed to retrieve state", disable_notification=True)
+        await update.message.reply_text("Failed to retrieve state. Cancelling.", disable_notification=True)
         return ConversationHandler.END
 
-    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, update.message.text)
+    if not description or len(description) == 0:
+        await update.message.reply_text(
+            "Description required!\nExample: <i>cat giving fat kisses, meow</i>",
+            disable_notification=True,
+            parse_mode='html'
+        )
+        return SEND_DESCRIPTION
+
+    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, description)
     return ConversationHandler.END
 
 
