@@ -66,8 +66,14 @@ async def _send_description_handler_with_params(
         description: str
 ):
     user_id = update.message.from_user.id
-    descriptions = split_descriptions(description)
     groups = [f'user-{user_id}', 'public']
+
+    descriptions = split_descriptions(description)
+    max_size = 50
+
+    if any(len(description) > max_size for description in descriptions):
+        await update.message.reply_text(f'Descriptions may not exceed {max_size}.')
+        return False
 
     user_content = UserContent(
         user_id=user_id,
@@ -90,6 +96,7 @@ async def _send_description_handler_with_params(
     )
 
     await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
+    return True
 
 
 async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -110,8 +117,10 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
         )
         return SEND_DESCRIPTION
 
-    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, description)
-    return ConversationHandler.END
+    if await _send_description_handler_with_params(update, sticker_id, sticker_file_id, description):
+        return ConversationHandler.END
+    else:
+        return SEND_DESCRIPTION
 
 
 async def keyboard_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
