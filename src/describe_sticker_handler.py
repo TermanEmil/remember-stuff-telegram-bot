@@ -17,20 +17,6 @@ async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT
     return SEND_STICKERS
 
 
-async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if not update.message.sticker:
-        await update.message.reply_text('Sticker required!')
-        return SEND_STICKERS
-
-    sticker_id = update.message.sticker.file_unique_id
-    sticker_file_id = update.message.sticker.file_id
-    context.user_data['sticker_id'] = sticker_id
-    context.user_data['sticker_file_id'] = sticker_file_id
-    await update.message.reply_text(f"Now add some description")
-
-    return SEND_DESCRIPTION
-
-
 async def _send_sticker_with_descriptions(update: Update, sticker_id: str, sticker_file_id: str) -> None:
     if update.callback_query:
         message = update.callback_query.message
@@ -38,6 +24,11 @@ async def _send_sticker_with_descriptions(update: Update, sticker_id: str, stick
         message = update.message
 
     all_descriptions = get_all_sticker_descriptions(sticker_id)
+
+    if len(all_descriptions) == 0:
+        await message.reply_text('Sticker has no descriptions.', disable_notification=True)
+        return
+
     buttons = map(lambda description: [
         InlineKeyboardButton(text=f'{description}', callback_data=f'{sticker_id}]|[{description}')
     ], all_descriptions)
@@ -49,6 +40,21 @@ async def _send_sticker_with_descriptions(update: Update, sticker_id: str, stick
         disable_notification=True,
         reply_markup=keyboard
     )
+
+
+async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if not update.message.sticker:
+        await update.message.reply_text('Sticker required!')
+        return SEND_STICKERS
+
+    sticker_id = update.message.sticker.file_unique_id
+    sticker_file_id = update.message.sticker.file_id
+    context.user_data['sticker_id'] = sticker_id
+    context.user_data['sticker_file_id'] = sticker_file_id
+    await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
+    await update.message.reply_text(f"Now add some description")
+
+    return SEND_DESCRIPTION
 
 
 async def _send_description_handler_with_params(

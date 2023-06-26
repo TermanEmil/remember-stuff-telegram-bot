@@ -6,6 +6,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     text = '\n'.join([
         f'Hi. I will help you find stickers.',
         f'You can use the /describe_sticker command to save some hand-picked stickers.',
+        f'To remove a description click on the returned sticker\'s buttons.',
         f'Then you can use me from any chat by typing:',
         f'@{update.get_bot().username} cat'
     ])
