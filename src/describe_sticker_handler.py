@@ -154,8 +154,8 @@ async def describe_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 def describe_sticker_conversation_handlers() -> Iterable[ConversationHandler]:
-    # Filter non-empty text
-    yield CommandHandler('describe_sticker', describe_sticker, filters=filters.TEXT & filters.Regex(r"\s+"))
+    non_empty_text = filters.TEXT & filters.Regex(r"\s+")
+    yield CommandHandler('describe_sticker', describe_sticker, filters=non_empty_text)
 
     yield ConversationHandler(
         name='describe_sticker_conversation',
