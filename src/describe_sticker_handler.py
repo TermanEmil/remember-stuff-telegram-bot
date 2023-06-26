@@ -11,6 +11,8 @@ from src.user_content import UserContent, save_user_content, get_all_sticker_des
 
 SEND_STICKERS, SEND_DESCRIPTION = range(2)
 
+EXAMPLE_USAGE = 'Example: <i>Lorem Ipsum, Foo, Bar</i>'
+
 
 async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text('Okay, now send me some stickers!')
@@ -52,7 +54,7 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
     context.user_data['sticker_id'] = sticker_id
     context.user_data['sticker_file_id'] = sticker_file_id
     await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
-    await update.message.reply_text(f"Now add some description")
+    await update.message.reply_text("Now add some descriptions.")
 
     return SEND_DESCRIPTION
 
@@ -81,7 +83,7 @@ async def _send_description_handler_with_params(
     s = len(descriptions) > 1
     await update.message.reply_text(
         f"The sticker was saved with the following description{s}:\n"
-        f"<i>{readable_descriptions}</i>\n" +
+        f"<i>{readable_descriptions}</i>\n"
         "To start again use /describe_sticker",
         disable_notification=True,
         parse_mode='html'
@@ -101,7 +103,8 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
 
     if not description or len(description) == 0:
         await update.message.reply_text(
-            "Description required!\nExample: <i>cat giving fat kisses, meow</i>",
+            f"Description required!\n"
+            f"{EXAMPLE_USAGE}",
             disable_notification=True,
             parse_mode='html'
         )
