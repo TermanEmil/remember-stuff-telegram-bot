@@ -1,3 +1,4 @@
+import re
 from typing import Iterable
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -6,6 +7,9 @@ from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, Mess
 
 from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions, split_descriptions, \
     STICKER_CONTENT, delete_content_description
+
+
+SEND_STICKERS, SEND_DESCRIPTION = range(2)
 
 
 async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -47,16 +51,14 @@ async def _send_sticker_with_descriptions(update: Update, sticker_id: str, stick
     )
 
 
-async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    sticker_id = context.user_data.get('sticker_id', None)
-    sticker_file_id = context.user_data.get('sticker_file_id', None)
-
-    if sticker_id is None or sticker_file_id is None:
-        await update.message.reply_text("Failed to retrieve state", disable_notification=True)
-        return ConversationHandler.END
-
+async def _send_description_handler_with_params(
+        update: Update,
+        sticker_id: str,
+        sticker_file_id: str,
+        description: str
+):
     user_id = update.message.from_user.id
-    descriptions = split_descriptions(update.message.text)
+    descriptions = split_descriptions(description)
     groups = [f'user-{user_id}', 'public']
 
     user_content = UserContent(
@@ -76,6 +78,17 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
     )
 
     await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
+
+
+async def send_description_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    sticker_id = context.user_data.get('sticker_id', None)
+    sticker_file_id = context.user_data.get('sticker_file_id', None)
+
+    if sticker_id is None or sticker_file_id is None:
+        await update.message.reply_text("Failed to retrieve state", disable_notification=True)
+        return ConversationHandler.END
+
+    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, update.message.text)
     return ConversationHandler.END
 
 
@@ -107,10 +120,24 @@ async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     return ConversationHandler.END
 
 
-SEND_STICKERS, SEND_DESCRIPTION = range(2)
+async def describe_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message.reply_to_message or not update.message.reply_to_message.sticker:
+        await update.message.reply_text(
+            'The command must be ran either as a reply to a sticker or without any text.'
+        )
+        return
+
+    sticker_id = update.message.reply_to_message.sticker.file_unique_id
+    sticker_file_id = update.message.reply_to_message.sticker.file_id
+    text = re.sub(r'^/\w+', '', update.message.text)
+
+    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, text)
 
 
 def describe_sticker_conversation_handlers() -> Iterable[ConversationHandler]:
+    # Filter non-empty text
+    yield CommandHandler('describe_sticker', describe_sticker, filters=filters.TEXT & filters.Regex(r"\s+"))
+
     yield ConversationHandler(
         name='describe_sticker_conversation',
         entry_points=[CommandHandler("describe_sticker", describe_sticker_handler)],
