@@ -71,10 +71,12 @@ async def _send_description_handler_with_params(
     )
     save_user_content(user_content)
 
+    readable_descriptions = ', '.join(descriptions)
     await update.message.reply_text(
-        f"The sticker was saved with the following description: {descriptions}\n" +
+        f"The sticker was saved with the following description: <i>{readable_descriptions}</i>.\n" +
         "To start again use /describe_sticker",
-        disable_notification=True
+        disable_notification=True,
+        parse_mode='html'
     )
 
     await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
