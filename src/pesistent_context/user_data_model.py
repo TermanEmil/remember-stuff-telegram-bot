@@ -10,9 +10,6 @@ class UserData(TypedDict):
 
 def update_or_create_user_data(user_id: int, data: dict) -> None:
     if len(data) > 0:
-        if 'subscribed_groups' not in data:
-            data['subscribed_groups'] = [f'user-{user_id}', 'public']
-
         user_data = UserData(user_id=user_id, data=data)
 
         with db.get_db_client() as client:
@@ -27,6 +24,11 @@ def get_user_data(user_id: int) -> dict:
         item = client[db.DB_NAME][db.USER_DATA_NAME].find_one({'user_id': user_id})
 
     if item is None:
-        return {}
+        data = {}
     else:
-        return item['data']
+        data = item['data']
+
+    if 'subscribed_groups' not in data:
+        data['subscribed_groups'] = [f'user-{user_id}', 'public']
+
+    return data
