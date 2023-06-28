@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, InlineQueryHandler
 
 from src.describe_sticker_handler import describe_sticker_conversation_handlers
 from src.auxiliary.logger import logger
+from src.groups_handler import groups_handlers
 from src.pesistent_context.persistent_context_pymongo import PymongoConversationPersistence
 from src.search_content import search_content
 from src.start_handler import start_handler
@@ -41,6 +42,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     application.add_handler(CommandHandler("help", start_handler))
     application.add_handler(InlineQueryHandler(search_content))
     application.add_handlers(list(describe_sticker_conversation_handlers()))
+    application.add_handlers(list(groups_handlers()))
 
     async with application:
         update = Update.de_json(data=message_data, bot=application.bot)

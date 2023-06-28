@@ -29,6 +29,6 @@ def get_user_data(user_id: int) -> dict:
         data = item['data']
 
     if 'subscribed_groups' not in data:
-        data['subscribed_groups'] = [f'user-{user_id}', 'public']
+        data['subscribed_groups'] = [f'personal-{user_id}', 'global']
 
     return data
