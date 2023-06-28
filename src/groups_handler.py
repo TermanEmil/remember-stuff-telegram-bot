@@ -4,17 +4,20 @@ from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler
 
 
+GLOBAL = 'public'
+
+
 async def join_global_group_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if 'global' not in context.user_data['subscribed_groups']:
-        context.user_data['subscribed_groups'].append('global')
+    if GLOBAL not in context.user_data['subscribed_groups']:
+        context.user_data['subscribed_groups'].append(GLOBAL)
         await update.message.reply_text('Subscribed to global.')
     else:
         await update.message.reply_text('Already subscribed to global.')
 
 
 async def leave_global_group_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if 'global' in context.user_data['subscribed_groups']:
-        context.user_data['subscribed_groups'].remove('global')
+    if GLOBAL in context.user_data['subscribed_groups']:
+        context.user_data['subscribed_groups'].remove(GLOBAL)
         await update.message.reply_text('Unsubscribed from global.')
     else:
         await update.message.reply_text('Already unsubscribed from global.')
