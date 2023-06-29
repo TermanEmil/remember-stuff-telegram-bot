@@ -9,6 +9,7 @@ from src.groups_handler import groups_handlers
 from src.pesistent_context.persistent_context_pymongo import PymongoConversationPersistence
 from src.search_content import search_content
 from src.start_handler import start_handler
+from src.stopwatch import Stopwatch
 
 JSONDict = Dict[str, Any]
 
@@ -33,9 +34,9 @@ async def handle_bot_request(bot_token: str, message_data: dict):
 
     logger.info(f'Handling bot request for user {user_id}')
 
-    application = Application.builder()\
-        .token(bot_token)\
-        .persistence(PymongoConversationPersistence(user_id=user_id))\
+    application = Application.builder() \
+        .token(bot_token) \
+        .persistence(PymongoConversationPersistence(user_id=user_id)) \
         .build()
 
     application.add_handler(CommandHandler("start", start_handler))
@@ -44,11 +45,11 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     application.add_handlers(list(describe_sticker_conversation_handlers()))
     application.add_handlers(list(groups_handlers()))
 
-    async with application:
-        update = Update.de_json(data=message_data, bot=application.bot)
-        await application.process_update(update)
-
-    logger.info(f'Finished handling bot request for user {user_id}')
+    on_finish = lambda delta: logger.info(f'User {user_id}: Request handling finished in {delta} seconds.')
+    with Stopwatch(on_finish=on_finish):
+        async with application:
+            update = Update.de_json(data=message_data, bot=application.bot)
+            await application.process_update(update)
 
 
 async def setup_webhook(bot_token: str, url: str):

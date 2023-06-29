@@ -4,6 +4,7 @@ from typing import Optional, Tuple, TypedDict
 from telegram.ext._utils.types import ConversationKey
 
 import src.auxiliary.db as db
+from src.stopwatch import Stopwatch
 
 
 class ConversationData(TypedDict):
@@ -31,22 +32,24 @@ def update_or_create_conversation_data(
         conversation_state=actual_state
     )
 
-    with db.get_db_client() as client:
-        client[db.DB_NAME][db.CONVERSATIONS_NAME].update_one(
-            filter={'user_id': user_id, 'conversation_name': conversation_name},
-            update={"$set": data},
-            upsert=True
-        )
+    with Stopwatch('update_or_create_conversation_data'):
+        with db.get_db_client() as client:
+            client[db.DB_NAME][db.CONVERSATIONS_NAME].update_one(
+                filter={'user_id': user_id, 'conversation_name': conversation_name},
+                update={"$set": data},
+                upsert=True
+            )
 
 
 def get_conversation_data(
         user_id: int,
         conversation_name: str
 ) -> dict:
-    with db.get_db_client() as client:
-        conversation = client[db.DB_NAME][db.CONVERSATIONS_NAME].find_one(
-            {'user_id': user_id, 'conversation_name': conversation_name}
-        )
+    with Stopwatch('get_conversation_data'):
+        with db.get_db_client() as client:
+            conversation = client[db.DB_NAME][db.CONVERSATIONS_NAME].find_one(
+                {'user_id': user_id, 'conversation_name': conversation_name}
+            )
 
     if conversation is None:
         return {}

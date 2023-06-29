@@ -179,8 +179,8 @@ def describe_sticker_conversation_handlers() -> Iterable[ConversationHandler]:
         name='describe_sticker_conversation',
         entry_points=[CommandHandler("describe_sticker", describe_sticker_handler)],
         states={
-            SEND_STICKERS: [MessageHandler(filters.TEXT & (~ filters.COMMAND), send_stickers_handler)],
-            SEND_DESCRIPTION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), send_description_handler)]
+            SEND_STICKERS: [MessageHandler(filters.ALL & (~ filters.COMMAND), send_stickers_handler)],
+            SEND_DESCRIPTION: [MessageHandler(filters.ALL & (~ filters.COMMAND), send_description_handler)]
         },
         fallbacks=[CommandHandler("cancel", cancel_handler)],
         persistent=True,
