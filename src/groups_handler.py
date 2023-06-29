@@ -25,4 +25,4 @@ async def leave_global_group_handler(update: Update, context: ContextTypes.DEFAU
 
 def groups_handlers() -> Iterable[CommandHandler]:
     yield CommandHandler('join_global', join_global_group_handler)
-    yield CommandHandler('leave_global', join_global_group_handler)
+    yield CommandHandler('leave_global', leave_global_group_handler)

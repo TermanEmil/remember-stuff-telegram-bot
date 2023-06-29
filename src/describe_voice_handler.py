@@ -69,7 +69,7 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
     save_user_content(user_content)
 
     readable_descriptions = ', '.join(descriptions)
-    s = len(descriptions) > 1
+    s = 's' if len(descriptions) > 1 else ''
     await update.message.reply_text(
         f"The voice message <i>{voice_title}</i> was saved with the following description{s}:\n"
         f"<i>{readable_descriptions}</i>\n"

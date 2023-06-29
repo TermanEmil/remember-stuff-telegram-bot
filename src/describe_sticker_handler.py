@@ -88,7 +88,7 @@ async def _send_description_handler_with_params(
     save_user_content(user_content)
 
     readable_descriptions = ', '.join(descriptions)
-    s = len(descriptions) > 1
+    s = 's' if len(descriptions) > 1 else ''
     await update.message.reply_text(
         f"The sticker was saved with the following description{s}:\n"
         f"<i>{readable_descriptions}</i>\n"
