@@ -14,6 +14,8 @@ class UserContent(TypedDict):
     descriptions: List[str]
     groups: List[str]
     type: str
+    title: str
+    duration: Optional[int]
 
 
 MIN_DESCRIPTION_SIZE = 2
@@ -54,7 +56,7 @@ def delete_content_description(user_id: int, content_id: int, description: str) 
         return deleted_element
 
 
-def search_user_content(groups: List[str], query: str) -> List[UserContent]:
+def search_user_content(groups: List[str], query: str, content_type: str) -> List[UserContent]:
     with db.get_db_client() as client:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
             'groups': {
@@ -63,7 +65,8 @@ def search_user_content(groups: List[str], query: str) -> List[UserContent]:
             'descriptions': {
                 '$regex': f'^.*{query}.*$',
                 '$options': 'i'
-            }
+            },
+            'type': content_type
         })
         user_content = [UserContent(**item) for item in items]
         user_content_dict = dict(map(lambda x: (x['content_id'], x), user_content))

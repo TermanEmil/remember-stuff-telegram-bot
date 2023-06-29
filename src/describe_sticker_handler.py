@@ -3,7 +3,7 @@ from typing import Iterable
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, Application, \
-    CallbackQueryHandler
+    CallbackQueryHandler, BaseHandler
 
 from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions, split_descriptions, \
     STICKER_CONTENT, delete_content_description
@@ -81,7 +81,9 @@ async def _send_description_handler_with_params(
         content_file_id=sticker_file_id,
         descriptions=descriptions,
         groups=groups,
-        type=STICKER_CONTENT
+        type=STICKER_CONTENT,
+        title='sticker',
+        duration=None
     )
     save_user_content(user_content)
 
@@ -171,7 +173,7 @@ async def describe_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await _send_description_handler_with_params(update, sticker_id, sticker_file_id, text)
 
 
-def describe_sticker_conversation_handlers() -> Iterable[ConversationHandler]:
+def describe_sticker_conversation_handlers() -> Iterable[BaseHandler]:
     non_empty_text = filters.TEXT & filters.Regex(r"\s+")
     yield CommandHandler('describe_sticker', describe_sticker, filters=non_empty_text)
 

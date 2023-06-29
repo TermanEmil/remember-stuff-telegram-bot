@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, InlineQueryHandler
 
 from src.describe_sticker_handler import describe_sticker_conversation_handlers
 from src.auxiliary.logger import logger
+from src.describe_voice_handler import describe_voice_handlers
 from src.groups_handler import groups_handlers
 from src.pesistent_context.persistent_context_pymongo import PymongoConversationPersistence
 from src.search_content import search_content
@@ -44,6 +45,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     application.add_handler(InlineQueryHandler(search_content))
     application.add_handlers(list(describe_sticker_conversation_handlers()))
     application.add_handlers(list(groups_handlers()))
+    application.add_handlers(list(describe_voice_handlers()))
 
     on_finish = lambda delta: logger.info(f'User {user_id}: Request handling finished in {delta} seconds.')
     with Stopwatch(on_finish=on_finish):
