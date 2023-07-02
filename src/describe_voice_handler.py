@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, List
 
 from telegram import Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
@@ -51,7 +51,7 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
         return False
 
     user_id = update.message.from_user.id
-    groups = [f'user-{user_id}', 'public']
+    groups = context.user_data['broadcasting_groups']
     voice_id = context.user_data.get('voice_id')
     voice_file_id = context.user_data.get('voice_file_id')
     voice_duration = context.user_data.get('voice_duration')

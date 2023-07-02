@@ -34,4 +34,7 @@ def get_user_data(user_id: int) -> dict:
     if 'subscribed_groups' not in data:
         data['subscribed_groups'] = [f'user-{user_id}', 'public']
 
+    if 'broadcasting_groups' not in data:
+        data['broadcasting_groups'] = [f'user-{user_id}']
+
     return data

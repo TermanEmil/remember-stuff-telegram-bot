@@ -1,5 +1,5 @@
 import re
-from typing import Iterable
+from typing import Iterable, List
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, Application, \
@@ -61,12 +61,13 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def _send_description_handler_with_params(
         update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
         sticker_id: str,
         sticker_file_id: str,
         description: str
 ):
     user_id = update.message.from_user.id
-    groups = [f'user-{user_id}', 'public']
+    groups = context.user_data['broadcasting_groups']
 
     descriptions = split_descriptions(description)
     max_size = 50
@@ -119,7 +120,7 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
         )
         return SEND_DESCRIPTION
 
-    if await _send_description_handler_with_params(update, sticker_id, sticker_file_id, description):
+    if await _send_description_handler_with_params(update, context, sticker_id, sticker_file_id, description):
         return ConversationHandler.END
     else:
         return SEND_DESCRIPTION
@@ -170,7 +171,7 @@ async def describe_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     sticker_file_id = update.message.reply_to_message.sticker.file_id
     text = re.sub(r'^/\w+', '', update.message.text)
 
-    await _send_description_handler_with_params(update, sticker_id, sticker_file_id, text)
+    await _send_description_handler_with_params(update, context, sticker_id, sticker_file_id, text)
 
 
 def describe_sticker_conversation_handlers() -> Iterable[BaseHandler]:
