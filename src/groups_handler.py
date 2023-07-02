@@ -23,6 +23,16 @@ async def leave_global_group_handler(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text('Already unsubscribed from global.')
 
 
+async def list_subscribed_groups_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.message.from_user.id
+    personal_group = f'user-{user_id}'
+    groups = context.user_data['subscribed_groups']
+    groups = ('personal' if x == personal_group else x for x in groups)
+    readable_groups = ', '.join(groups)
+    await update.message.reply_text(f'You are currently subscribe to the following groups: {readable_groups}.')
+
+
 def groups_handlers() -> Iterable[CommandHandler]:
     yield CommandHandler('join_global', join_global_group_handler)
     yield CommandHandler('leave_global', leave_global_group_handler)
+    yield CommandHandler('list_subscribed_groups', list_subscribed_groups_handler)
