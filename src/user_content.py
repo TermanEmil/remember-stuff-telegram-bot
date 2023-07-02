@@ -1,6 +1,6 @@
 import itertools
 import re
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List, Optional, Iterable, Dict
 
 from pymongo.results import UpdateResult
 
@@ -78,3 +78,29 @@ def get_all_sticker_descriptions(sticker_id: str) -> List[str]:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({'content_id': sticker_id})
         descriptions = map(lambda item: item['descriptions'], items)
         return list(sorted(itertools.chain.from_iterable(descriptions)))
+
+
+# noinspection PyTypeChecker
+def get_all_user_described_stickers(user_id: int) -> List[UserContent]:
+    with db.get_db_client() as client:
+        items: List[UserContent]
+        items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'type': STICKER_CONTENT,
+            'user_id': user_id,
+            'descriptions': {
+                '$exists': True,
+                '$not': {'$size': 0}
+            }
+        })
+
+        stickers: Dict[str, UserContent] = {}
+        for item in items:
+            if item['content_id'] not in stickers:
+                stickers[item['content_id']] = item
+            else:
+                stickers[item['content_id']]['descriptions'].extend(item['descriptions'])
+
+        result = filter(lambda x: len(x['descriptions']) > 0, stickers.values())
+        result = sorted(result, key=lambda x: x['content_id'])
+        result = list(result)
+        return result
