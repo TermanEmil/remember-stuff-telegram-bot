@@ -29,6 +29,9 @@ def _extract_user_id(message_data: dict) -> Optional[int]:
 
 
 async def handle_bot_request(bot_token: str, message_data: dict):
+    if 'channel_post' in message_data and message_data['channel_post']['chat']['title'] == 'StickerFindingBroadcast':
+        pass
+
     user_id = _extract_user_id(message_data)
     if user_id is None:
         return

@@ -6,6 +6,7 @@ from telegram.ext import BaseHandler, CommandHandler, ContextTypes, Conversation
 from src.user_content import UserContent, split_descriptions, VOICE_MESSAGE_CONTENT, save_user_content
 
 SEND_VOICE, SEND_VOICE_TITLE, SEND_VOICE_DESCRIPTION = range(3)
+BROADCASTING_CHAT_ID = -1001757896768
 
 
 async def describe_voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -77,6 +78,11 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
         disable_notification=True,
         parse_mode='html'
     )
+
+    # Broadcast the voice message on a channel to allow the reuse of the voice_file_id between other bots.
+    # Simply broadcasting a message to a channel in which these bots are added is enough to use the same file id.
+    # I'm doing this is so that my uploads from my development bot are available on prod as well.
+    await update.get_bot().send_voice(BROADCASTING_CHAT_ID, voice=voice_file_id, caption=voice_title)
 
     return ConversationHandler.END
 
