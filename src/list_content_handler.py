@@ -89,7 +89,19 @@ async def list_available_voices_handler(update: Update, context: ContextTypes.DE
     )
 
 
+async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        '/list_my_stickers - List your described stickers\n'
+        '/list_available_stickers - List stickers from the subscribed groups\n'
+
+        '/list_my_voices - List your described voice messages\n'
+        '/list_available_voices - List voice messages from the subscribed groups\n'
+    )
+
+
 def list_content_handlers() -> Iterable[CommandHandler]:
+    yield CommandHandler('list', help_handler)
+
     yield CommandHandler('list_my_stickers', list_my_stickers_handler)
     yield CommandHandler('list_my_voices', list_my_voices_handler)
 
