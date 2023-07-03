@@ -16,7 +16,7 @@ def update_or_create_user_data(user_id: int, data: dict) -> None:
         with Stopwatch('update_or_create_user_data'):
             with db.get_db_client() as client:
                 client[db.DB_NAME][db.USER_DATA_NAME].update_one(
-                    {'matchable_field': 'user_id'},
+                    {'user_id': user_id},
                     {"$set": user_data}, upsert=True
                 )
 
@@ -35,6 +35,6 @@ def get_user_data(user_id: int) -> dict:
         data['subscribed_groups'] = [f'user-{user_id}', 'public']
 
     if 'broadcasting_groups' not in data:
-        data['broadcasting_groups'] = [f'user-{user_id}']
+        data['broadcasting_groups'] = [f'user-{user_id}', 'public']
 
     return data
