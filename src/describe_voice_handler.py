@@ -1,9 +1,12 @@
+from datetime import datetime, timezone
 from typing import Iterable, List
 
 from telegram import Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
-from src.user_content import UserContent, split_descriptions, VOICE_MESSAGE_CONTENT, save_user_content
+from src.user_content import UserContent, split_descriptions, VOICE_MESSAGE_CONTENT, save_user_content, \
+    find_content_by_id
+from src.user_content_action_handlers import send_user_content_with_callback_actions
 
 SEND_VOICE, SEND_VOICE_TITLE, SEND_VOICE_DESCRIPTION = range(3)
 BROADCASTING_CHAT_ID = -1001757896768
@@ -23,6 +26,8 @@ async def send_voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data['voice_file_id'] = update.message.voice.file_id
     context.user_data['voice_duration'] = update.message.voice.duration
 
+    content = find_content_by_id(update.message.voice.file_unique_id, context.user_data.get('subscribed_groups'))
+    await send_user_content_with_callback_actions(update, context, content)
     await update.message.reply_text('Now give this voice message a title.')
     return SEND_VOICE_TITLE
 
@@ -66,6 +71,8 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
         title=voice_title,
         duration=voice_duration,
         type=VOICE_MESSAGE_CONTENT,
+        date_created=datetime.now(timezone.utc),
+        last_updated=datetime.now(timezone.utc)
     )
     save_user_content(user_content)
 
@@ -78,6 +85,9 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
         disable_notification=True,
         parse_mode='html'
     )
+
+    content = find_content_by_id(voice_id, context.user_data.get('subscribed_groups'))
+    await send_user_content_with_callback_actions(update, context, content)
 
     # Broadcast the voice message on a channel to allow the reuse of the voice_file_id between other bots.
     # Simply broadcasting a message to a channel in which these bots are added is enough to use the same file id.

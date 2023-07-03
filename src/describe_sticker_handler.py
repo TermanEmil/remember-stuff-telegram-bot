@@ -29,7 +29,7 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
     context.user_data['sticker_id'] = sticker_id
     context.user_data['sticker_file_id'] = sticker_file_id
 
-    content = find_content_by_id(sticker_id)
+    content = find_content_by_id(sticker_id, context.user_data.get('subscribed_groups'))
     await send_user_content_with_callback_actions(update, context, content)
     await update.message.reply_text("Now add some descriptions.")
 
@@ -77,7 +77,7 @@ async def _send_description_handler_with_params(
         parse_mode='html'
     )
 
-    new_content = find_content_by_id(sticker_id)
+    new_content = find_content_by_id(sticker_id, context.user_data.get('subscribed_groups'))
     await send_user_content_with_callback_actions(update, context, new_content)
     return True
 

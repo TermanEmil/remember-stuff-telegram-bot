@@ -76,7 +76,7 @@ async def keyboard_button_handler(update: Update, context: ContextTypes.DEFAULT_
         parse_mode='html',
         disable_notification=True
     )
-    updated_content = find_content_by_id(content_id)
+    updated_content = find_content_by_id(content_id, context.user_data.get('subscribed_groups'))
     await send_user_content_with_callback_actions(update, context, updated_content)
 
 

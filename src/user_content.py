@@ -133,9 +133,12 @@ def get_all_sticker_descriptions(sticker_id: str) -> List[str]:
         return list(sorted(itertools.chain.from_iterable(descriptions)))
 
 
-def find_content_by_id(content_id: str) -> List[UserContent]:
+def find_content_by_id(content_id: str, groups: List[str]) -> List[UserContent]:
     with db.get_db_client() as client:
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'groups': {
+                '$in': groups
+            },
             'content_id': content_id,
             'descriptions': {'$exists': True, '$not': {'$size': 0}}
         }).sort([('title', ASCENDING), ('type', ASCENDING), ('last_updated', DESCENDING)])
