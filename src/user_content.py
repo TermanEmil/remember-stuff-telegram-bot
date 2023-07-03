@@ -23,6 +23,26 @@ class UserContent(TypedDict):
     last_updated: datetime
 
 
+def validate_user_content(content: UserContent) -> Iterable[str]:
+    if content['content_id'] is None:
+        yield 'Missing content_id'
+
+    if content['content_file_id'] is None:
+        yield 'Missing content_file_id'
+
+    if content['groups'] is None or len(content['groups']) == 0:
+        yield 'Empty groups are not allowed'
+
+    if content['type'] is None:
+        yield 'Missing type'
+
+    if content['type'] not in [STICKER_CONTENT, VOICE_MESSAGE_CONTENT]:
+        yield 'Invalid content type'
+
+    if content['descriptions'] is None or len(content['descriptions']) != 0:
+        yield 'Empty descriptions are not allowed'
+
+
 MIN_DESCRIPTION_SIZE = 2
 STICKER_CONTENT = 'sticker'
 VOICE_MESSAGE_CONTENT = 'voice-message'
@@ -35,6 +55,10 @@ def split_descriptions(description: str) -> List[str]:
 
 
 def save_user_content(content: UserContent):
+    errors = list(validate_user_content(content))
+    if errors:
+        raise Exception(f'Failed to save with the following errors: {errors}')
+
     with db.get_db_client() as client:
         now = datetime.now(timezone.utc)
         content['date_created'] = now
