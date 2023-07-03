@@ -42,11 +42,10 @@ def save_user_content(content: UserContent):
         client[db.DB_NAME][db.USER_CONTENT_NAME].insert_one(content)
 
 
-def delete_content_description(user_id: int, content_id: int, description: str) -> Optional[UserContent]:
+def delete_content_description(content_id: int, description: str) -> Optional[UserContent]:
     with db.get_db_client() as client:
         deleted_element = client[db.DB_NAME][db.USER_CONTENT_NAME].find_one_and_update(
             {
-                'user_id': user_id,
                 'content_id': content_id,
                 'descriptions': {
                     '$regex': f'^{description}$',
@@ -64,7 +63,24 @@ def delete_content_description(user_id: int, content_id: int, description: str) 
                     'last_updated': datetime.now(timezone.utc)
                 }
             })
+
         return deleted_element
+
+
+def user_allowed_to_touch_content(context: dict, user_id: int, content: UserContent) -> bool:
+    return f'user-{user_id}' in content['groups']
+
+
+def find_with_description(content_id: str, description: str) -> Optional[UserContent]:
+    with db.get_db_client() as client:
+        item = client[db.DB_NAME][db.USER_CONTENT_NAME].find_one({
+            'content_id': content_id,
+            'descriptions': {
+                '$regex': f'^.*{description}.*$',
+                '$options': 'i'
+            },
+        })
+        return UserContent(**item) if item else None
 
 
 def search_user_content(groups: List[str], query: str, content_type: str) -> List[UserContent]:
@@ -120,3 +136,22 @@ def get_all_user_described_content(user_id: int, content_type: str) -> Dict[str,
         return contents
 
 
+def get_all_available_contents(groups: List[str], content_type: str) -> Dict[str, List[UserContent]]:
+    with db.get_db_client() as client:
+        items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'type': content_type,
+            'groups': {
+              '$in': groups
+            },
+            'descriptions': {
+                '$exists': True,
+                '$not': {'$size': 0}
+            }
+        }).sort([('last_modified', DESCENDING), ('title', ASCENDING)])
+        items = map(lambda x: UserContent(**x), items)
+
+        contents: Dict[str, List[UserContent]] = {}
+        for item in items:
+            contents.setdefault(item['content_id'], []).append(item)
+
+        return contents
