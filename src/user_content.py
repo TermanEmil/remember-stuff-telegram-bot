@@ -39,7 +39,7 @@ def validate_user_content(content: UserContent) -> Iterable[str]:
     if content['type'] not in [STICKER_CONTENT, VOICE_MESSAGE_CONTENT]:
         yield 'Invalid content type'
 
-    if content['descriptions'] is None or len(content['descriptions']) != 0:
+    if content['descriptions'] is None or len(content['descriptions']) == 0:
         yield 'Empty descriptions are not allowed'
 
 
@@ -88,6 +88,8 @@ def delete_content_description(content_id: int, description: str) -> Optional[Us
                 }
             })
 
+        if deleted_element and len(deleted_element['descriptions']) == 1:
+            client[db.DB_NAME][db.USER_CONTENT_NAME].delete_one({'_id': deleted_element['_id']})
         return deleted_element
 
 
