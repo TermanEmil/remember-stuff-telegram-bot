@@ -2,31 +2,19 @@ import math
 import re
 from typing import Iterable
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, ContextTypes
 
-from src.user_content import get_all_user_described_stickers, UserContent
+from src.user_content import get_all_user_described_content, STICKER_CONTENT, VOICE_MESSAGE_CONTENT
+from src.user_content_action_handlers import send_user_content_with_callback_actions
 
 
-async def _send_sticker_with_descriptions(update: Update, sticker: UserContent) -> None:
-    sticker_id = sticker['content_id']
-    sticker_file_id = sticker['content_file_id']
-    all_descriptions = sticker['descriptions']
-
-    buttons = map(lambda description: [
-        InlineKeyboardButton(text=f'❌ {description}', callback_data=f'{sticker_id}]|[{description}')
-    ], all_descriptions)
-
-    keyboard = InlineKeyboardMarkup(list(buttons))
-
-    await update.message.reply_sticker(
-        sticker=sticker_file_id,
-        disable_notification=True,
-        reply_markup=keyboard
-    )
-
-
-async def list_my_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def list_my_contents_handler(
+        update: Update,
+        context: ContextTypes.DEFAULT_TYPE,
+        content_type: str,
+        command_name: str
+) -> None:
     text = re.sub(r'^/\w+', '', update.message.text).strip()
     match = re.search(r'page (\d+)', text, re.IGNORECASE)
     if match:
@@ -34,18 +22,25 @@ async def list_my_stickers_handler(update: Update, context: ContextTypes.DEFAULT
     else:
         page = 1
 
-    page_size = 20
     user_id = update.message.from_user.id
-    all_stickers = get_all_user_described_stickers(user_id)
-    paginated_stickers = all_stickers[(page - 1) * page_size:page * page_size]
-    total_pages = int(math.ceil(len(all_stickers) / page_size))
-    has_next = (page + 1) * page_size <= len(all_stickers)
+    contents = get_all_user_described_content(user_id, content_type)
 
-    for sticker in paginated_stickers:
-        await _send_sticker_with_descriptions(update, sticker)
+    page_size = 10
+    keys = list(contents.keys())
+    paginated_keys = keys[(page - 1) * page_size:page * page_size]
+    paginated_contents = {key: contents[key] for key in paginated_keys}
+    total_pages = int(math.ceil(len(contents) / page_size))
+    has_next = (page + 1) * page_size <= len(contents)
+
+    if len(contents) == 0:
+        await update.message.reply_text('The list is empty.')
+        return
+
+    for contents in paginated_contents.values():
+        await send_user_content_with_callback_actions(update, contents)
 
     if has_next:
-        buttons = [[f'/list_my_stickers page {page + 1}']]
+        buttons = [[f'/{command_name} page {page + 1}']]
         keyboard = ReplyKeyboardMarkup(buttons, one_time_keyboard=True, resize_keyboard=True)
         await update.message.reply_text(
             f'Press the button to view the next ones.\nCurrently at {page}/{total_pages}.',
@@ -53,5 +48,14 @@ async def list_my_stickers_handler(update: Update, context: ContextTypes.DEFAULT
         )
 
 
+async def list_my_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await list_my_contents_handler(update, context, STICKER_CONTENT, 'list_my_stickers')
+
+
+async def list_my_voices_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await list_my_contents_handler(update, context, VOICE_MESSAGE_CONTENT, 'list_my_voices')
+
+
 def list_content_handlers() -> Iterable[CommandHandler]:
     yield CommandHandler('list_my_stickers', list_my_stickers_handler)
+    yield CommandHandler('list_my_voices', list_my_voices_handler)

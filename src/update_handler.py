@@ -12,6 +12,7 @@ from src.pesistent_context.persistent_context_pymongo import PymongoConversation
 from src.search_content import search_content
 from src.start_handler import start_handler
 from src.stopwatch import Stopwatch
+from src.user_content_action_handlers import user_content_action_handlers
 
 JSONDict = Dict[str, Any]
 
@@ -51,6 +52,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     application.add_handlers(list(groups_handlers()))
     application.add_handlers(list(describe_voice_handlers()))
     application.add_handlers(list(list_content_handlers()))
+    application.add_handlers(list(user_content_action_handlers()))
 
     on_finish = lambda delta: logger.info(f'User {user_id}: Request handling finished in {delta} seconds.')
     with Stopwatch(on_finish=on_finish):

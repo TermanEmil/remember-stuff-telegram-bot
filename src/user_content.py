@@ -1,8 +1,11 @@
 import itertools
 import re
+from datetime import datetime, timezone
 from typing import TypedDict, List, Optional, Iterable, Dict
 
+from pymongo import ASCENDING, DESCENDING
 from pymongo.results import UpdateResult
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 
 import src.auxiliary.db as db
 
@@ -16,6 +19,8 @@ class UserContent(TypedDict):
     type: str
     title: str
     duration: Optional[int]
+    date_created: datetime
+    last_updated: datetime
 
 
 MIN_DESCRIPTION_SIZE = 2
@@ -31,6 +36,9 @@ def split_descriptions(description: str) -> List[str]:
 
 def save_user_content(content: UserContent):
     with db.get_db_client() as client:
+        now = datetime.now(timezone.utc)
+        content['date_created'] = now
+        content['last_updated'] = now
         client[db.DB_NAME][db.USER_CONTENT_NAME].insert_one(content)
 
 
@@ -51,6 +59,9 @@ def delete_content_description(user_id: int, content_id: int, description: str) 
                         '$regex': f'^{description}$',
                         '$options': 'i'
                     }
+                },
+                '$set': {
+                    'last_updated': datetime.now(timezone.utc)
                 }
             })
         return deleted_element
@@ -80,12 +91,21 @@ def get_all_sticker_descriptions(sticker_id: str) -> List[str]:
         return list(sorted(itertools.chain.from_iterable(descriptions)))
 
 
+def find_content_by_id(content_id: str) -> List[UserContent]:
+    with db.get_db_client() as client:
+        items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
+            'content_id': content_id,
+            'descriptions': {'$exists': True, '$not': {'$size': 0}}
+        }).sort([('title', ASCENDING), ('type', ASCENDING), ('last_updated', DESCENDING)])
+        return list(items)
+
+
 # noinspection PyTypeChecker
-def get_all_user_described_stickers(user_id: int) -> List[UserContent]:
+def get_all_user_described_content(user_id: int, content_type: str) -> Dict[str, List[UserContent]]:
     with db.get_db_client() as client:
         items: List[UserContent]
         items = client[db.DB_NAME][db.USER_CONTENT_NAME].find({
-            'type': STICKER_CONTENT,
+            'type': content_type,
             'user_id': user_id,
             'descriptions': {
                 '$exists': True,
@@ -93,14 +113,10 @@ def get_all_user_described_stickers(user_id: int) -> List[UserContent]:
             }
         })
 
-        stickers: Dict[str, UserContent] = {}
+        contents: Dict[str, List[UserContent]] = {}
         for item in items:
-            if item['content_id'] not in stickers:
-                stickers[item['content_id']] = item
-            else:
-                stickers[item['content_id']]['descriptions'].extend(item['descriptions'])
+            contents.setdefault(item['content_id'], []).append(item)
 
-        result = filter(lambda x: len(x['descriptions']) > 0, stickers.values())
-        result = sorted(result, key=lambda x: x['content_id'])
-        result = list(result)
-        return result
+        return contents
+
+

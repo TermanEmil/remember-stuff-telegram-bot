@@ -1,13 +1,13 @@
 import re
-from typing import Iterable, List
+from datetime import datetime, timezone
+from typing import Iterable
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, Application, \
-    CallbackQueryHandler, BaseHandler
+from telegram import Update
+from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters, BaseHandler
 
-from src.user_content import UserContent, save_user_content, get_all_sticker_descriptions, split_descriptions, \
-    STICKER_CONTENT, delete_content_description
-
+from src.user_content import UserContent, save_user_content, split_descriptions, \
+    STICKER_CONTENT, find_content_by_id
+from src.user_content_action_handlers import send_user_content_with_callback_actions
 
 SEND_STICKERS, SEND_DESCRIPTION = range(2)
 
@@ -19,31 +19,6 @@ async def describe_sticker_handler(update: Update, context: ContextTypes.DEFAULT
     return SEND_STICKERS
 
 
-async def _send_sticker_with_descriptions(update: Update, sticker_id: str, sticker_file_id: str) -> None:
-    if update.callback_query:
-        message = update.callback_query.message
-    else:
-        message = update.message
-
-    all_descriptions = get_all_sticker_descriptions(sticker_id)
-
-    if len(all_descriptions) == 0:
-        await message.reply_text('Sticker has no descriptions.', disable_notification=True)
-        return
-
-    buttons = map(lambda description: [
-        InlineKeyboardButton(text=f'❌ {description}', callback_data=f'{sticker_id}]|[{description}')
-    ], all_descriptions)
-
-    keyboard = InlineKeyboardMarkup(list(buttons))
-
-    await message.reply_sticker(
-        sticker=sticker_file_id,
-        disable_notification=True,
-        reply_markup=keyboard
-    )
-
-
 async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if not update.message.sticker:
         await update.message.reply_text('Sticker required!')
@@ -53,7 +28,9 @@ async def send_stickers_handler(update: Update, context: ContextTypes.DEFAULT_TY
     sticker_file_id = update.message.sticker.file_id
     context.user_data['sticker_id'] = sticker_id
     context.user_data['sticker_file_id'] = sticker_file_id
-    await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
+
+    content = find_content_by_id(sticker_id)
+    await send_user_content_with_callback_actions(update, content)
     await update.message.reply_text("Now add some descriptions.")
 
     return SEND_DESCRIPTION
@@ -84,7 +61,9 @@ async def _send_description_handler_with_params(
         groups=groups,
         type=STICKER_CONTENT,
         title='sticker',
-        duration=None
+        duration=None,
+        date_created=datetime.now(timezone.utc),
+        last_updated=datetime.now(timezone.utc)
     )
     save_user_content(user_content)
 
@@ -98,7 +77,8 @@ async def _send_description_handler_with_params(
         parse_mode='html'
     )
 
-    await _send_sticker_with_descriptions(update, sticker_id, sticker_file_id)
+    new_content = find_content_by_id(sticker_id)
+    await send_user_content_with_callback_actions(update, new_content)
     return True
 
 
@@ -124,35 +104,6 @@ async def send_description_handler(update: Update, context: ContextTypes.DEFAULT
         return ConversationHandler.END
     else:
         return SEND_DESCRIPTION
-
-
-async def keyboard_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-
-    await query.answer()
-
-    if len(query.data) == 0:
-        return
-
-    sticker_id, description = query.data.split(']|[')
-    deleted_element = delete_content_description(
-        user_id=update.callback_query.from_user.id,
-        content_id=sticker_id,
-        description=description
-    )
-
-    if deleted_element:
-        message = update.message if update.message else update.callback_query.message
-        await message.reply_text(
-            f'Description <i>{description}</i> removed.',
-            parse_mode='html',
-            disable_notification=True
-        )
-        await _send_sticker_with_descriptions(update, sticker_id, deleted_element['content_file_id'])
-    else:
-        await update.callback_query.message.reply_text(
-            f'Could not find the sticker with the following description: {description}'
-        )
 
 
 async def cancel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -189,5 +140,3 @@ def describe_sticker_conversation_handlers() -> Iterable[BaseHandler]:
         persistent=True,
         allow_reentry=True,
     )
-
-    yield CallbackQueryHandler(keyboard_button_handler)
