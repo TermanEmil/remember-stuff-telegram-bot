@@ -184,3 +184,18 @@ def get_all_available_contents(groups: List[str], content_type: str) -> Dict[str
             contents.setdefault(item['content_id'], []).append(item)
 
         return contents
+
+
+def make_content_public(user_id: int, content_type: str) -> UpdateResult:
+    with db.get_db_client() as client:
+        return client[db.DB_NAME][db.USER_CONTENT_NAME].update_many(
+            {
+                "type": "voice-message",
+                "groups": {'$ne': 'public'}
+            },
+            {
+                '$push': {
+                    'groups': 'public'
+                }
+            }
+        )

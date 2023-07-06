@@ -3,6 +3,7 @@ from typing import Iterable
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler
 
+from src.user_content import make_content_public, VOICE_MESSAGE_CONTENT
 
 GLOBAL = 'public'
 
@@ -57,6 +58,11 @@ async def stop_broadcasting_to_public_handler(update: Update, context: ContextTy
         await update.message.reply_text('Already not broadcasting to public.')
 
 
+async def make_my_voices_public_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    result = make_content_public(update.message.from_user.id, VOICE_MESSAGE_CONTENT)
+    await update.message.reply_text(f'Updated a total of {result.matched_count} voices.')
+
+
 async def groups_help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         '/list_subscribed_groups - See your subscribed groups\n'
@@ -78,3 +84,5 @@ def groups_handlers() -> Iterable[CommandHandler]:
     yield CommandHandler('list_broadcasting_groups', list_broadcasting_groups_handler)
     yield CommandHandler('broadcast_to_public', broadcast_to_public_handler)
     yield CommandHandler('stop_broadcasting_to_public', stop_broadcasting_to_public_handler)
+
+    yield CommandHandler('make_my_voices_public', make_my_voices_public_handler)
