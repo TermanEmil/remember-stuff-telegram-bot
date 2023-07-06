@@ -4,7 +4,7 @@ from typing import Optional, Tuple, TypedDict
 from telegram.ext._utils.types import ConversationKey
 
 import src.auxiliary.db as db
-from src.stopwatch import Stopwatch
+from src.auxiliary.stopwatch import Stopwatch
 
 
 class ConversationData(TypedDict):

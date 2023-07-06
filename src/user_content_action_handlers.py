@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import BaseHandler, CallbackQueryHandler, ContextTypes
 
 from src.auxiliary.logger import logger
-from src.bot_utils import extract_message
+from src.auxiliary.bot_utils import extract_message
 from src.user_content import delete_content_description, UserContent, STICKER_CONTENT, VOICE_MESSAGE_CONTENT, \
     find_content_by_id, user_allowed_to_touch_content, find_with_description
 

@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 import src.auxiliary.db as db
-from src.stopwatch import Stopwatch
+from src.auxiliary.stopwatch import Stopwatch
 
 
 class UserData(TypedDict):

@@ -22,14 +22,17 @@ async def search_content(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         content_type = STICKER_CONTENT
 
     query = query.strip()
-    if len(query) <= 2:
+    if len(query) <= 1:
         await update.inline_query.answer([])
         return
 
-    logger.info(f'Received inline query: {query}')
+    logger.info(f'Received inline query: {query}.')
     subscribed_groups = context.user_data.get('subscribed_groups')
     items = search_user_content(subscribed_groups, query, content_type)
-    logger.info(f'Found {len(items)} results')
+    logger.info(f'Found {len(items)} results.')
+
+    if len(items) == 0:
+        logger.info(f'Subscribed Groups: {subscribed_groups}.')
 
     def map_to_query_result(item: UserContent):
         if item['type'] == STICKER_CONTENT:

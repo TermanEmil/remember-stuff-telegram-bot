@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from telegram import Update
 from telegram.ext import Application, CommandHandler, InlineQueryHandler
 
+from src.auxiliary.bot_utils import stringify
 from src.describe_sticker_handler import describe_sticker_conversation_handlers
 from src.auxiliary.logger import logger
 from src.describe_voice_handler import describe_voice_handlers
@@ -11,7 +12,7 @@ from src.list_content_handler import list_content_handlers
 from src.pesistent_context.persistent_context_pymongo import PymongoConversationPersistence
 from src.search_content import search_content
 from src.start_handler import start_handler
-from src.stopwatch import Stopwatch
+from src.auxiliary.stopwatch import Stopwatch
 from src.user_content_action_handlers import user_content_action_handlers
 
 JSONDict = Dict[str, Any]
@@ -58,6 +59,7 @@ async def handle_bot_request(bot_token: str, message_data: dict):
     with Stopwatch(on_finish=on_finish):
         async with application:
             update = Update.de_json(data=message_data, bot=application.bot)
+            logger.info(f'Processing request: {stringify(update)}.')
             await application.process_update(update)
 
 

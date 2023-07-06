@@ -1,5 +1,5 @@
 import time
-from typing import Callable
+from typing import Callable, Awaitable
 
 from src.auxiliary.logger import logger
 
