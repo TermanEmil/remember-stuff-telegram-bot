@@ -57,7 +57,7 @@ def get_conversation_data(
     key = _array_as_string_to_int_tuple(conversation['conversation_key'])
 
     state_str = conversation['conversation_state']
-    state = int(state_str) if state_str else None
+    state = int(state_str) if state_str and state_str.isnumeric() else None
 
     return {key: state}
 

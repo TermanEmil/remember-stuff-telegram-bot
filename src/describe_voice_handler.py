@@ -53,7 +53,7 @@ async def send_descriptions_handler(update: Update, context: ContextTypes.DEFAUL
 
     if any(len(description) > max_size for description in descriptions):
         await update.message.reply_text(f'Descriptions may not exceed {max_size}.')
-        return False
+        return SEND_VOICE_DESCRIPTION
 
     user_id = update.message.from_user.id
     groups = context.user_data['broadcasting_groups']
